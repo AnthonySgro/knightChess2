@@ -4,6 +4,8 @@ const morgan = require("morgan");
 const app = express();
 const PORT = 9000;
 
+//routes
+
 // Logging middleware
 app.use(morgan("dev"));
 
@@ -12,7 +14,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Static middleware
-app.use(express.static(path.join(__dirname, "..", "public")));
+app.use(express.static(path.join(__dirname, "../public")));
 
 // Send file
 app.get("/", (req, res, next) => {

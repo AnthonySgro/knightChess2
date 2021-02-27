@@ -1,10 +1,11 @@
 import React, { Component } from "react";
 import ReactDom from "react-dom";
+import ChessApp from "./components/chessApp.jsx";
 
-class Main extends Component {
+class GamePage extends Component {
     render() {
-        return <div>hi</div>;
+        return <ChessApp />;
     }
 }
 
-ReactDom.render(<Main />, document.querySelector("#app"));
+ReactDom.render(<GamePage />, document.querySelector("#app"));
