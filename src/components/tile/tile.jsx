@@ -15,9 +15,21 @@ class Tile extends Component {
     render() {
         const { tileConfig, row, col, rowStartColor } = this.props;
 
-        //grabs the piece
-        const piece = this.props.tileConfig;
-        const piecePresent = !isEmpty(piece);
+        //determines if we received a piece or a placeholder
+        const piecePresent = !isEmpty(this.props.tileConfig);
+        let piece;
+
+        //if piece, sets piece coordinates to this tile
+        if (piecePresent) {
+            piece = this.props.tileConfig;
+            piece.numberCoords = this.numberCoords;
+            piece.chessCoords = notationConverter(this.numberCoords);
+        }
+
+        //get image file from piece
+        const imageFile = piecePresent
+            ? piece.imageFile
+            : "/images/placeholder.png";
 
         //determines color of square
         const color = rowStartColor ? "light-square" : "dark-square";
