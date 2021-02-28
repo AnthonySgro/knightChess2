@@ -49,6 +49,26 @@ img {
     display: flex;
 }
 
+/* rounding those edges! */
+#a8 {
+    border-top-left-radius: 0.4rem;
+}
+
+#h8 {
+    border-top-right-radius: 0.4rem;
+}
+
+#a1 {
+    border-bottom-left-radius: 0.4rem;
+}
+
+#h1 {
+    border-bottom-right-radius: 0.4rem;
+}
+/*  */
+
+/* board square colors */
+
 .dark-square {
     background-color: #118ab2;
 }

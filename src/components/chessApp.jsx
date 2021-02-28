@@ -1,7 +1,6 @@
 import React, { Component } from "react";
 import Chessboard from "./chessboard/chessboard.jsx";
 import UserInterface from "./ui/userInterface.jsx";
-import { DragDropContext } from "react-beautiful-dnd";
 import {
     Piece,
     Pawn,
@@ -115,10 +114,7 @@ class ChessApp extends Component {
         return (
             <div id="chess-app">
                 <div id="interface-container">
-                    <DragDropContext onDragEnd>
-                        <Chessboard boardConfig={current.boardConfig} />
-                    </DragDropContext>
-
+                    <Chessboard boardConfig={current.boardConfig} />
                     <UserInterface />
                 </div>
             </div>
