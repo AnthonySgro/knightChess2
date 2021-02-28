@@ -1,7 +1,9 @@
 import React, { Component } from "react";
 import Chessboard from "./chessboard/chessboard.jsx";
 import UserInterface from "./ui/userInterface.jsx";
+import { DragDropContext } from "react-beautiful-dnd";
 import {
+    Piece,
     Pawn,
     Rook,
     Knight,
@@ -42,7 +44,7 @@ class ChessApp extends Component {
 
     componentDidMount(prevProps) {
         let R1 = new Rook(this.props, "R");
-        let N1 = new Knight(this.props, "N");
+        let N1 = new Knight(this.props, "K");
         let B1 = new Bishop(this.props, "B");
         let Q1 = new Queen(this.props, "Q");
         let K1 = new King(this.props, "K");
@@ -102,6 +104,8 @@ class ChessApp extends Component {
         });
     }
 
+    onDragEnd(result) {}
+
     render() {
         const history = this.state.history;
         const current = history[this.state.stepNumber];
@@ -111,7 +115,10 @@ class ChessApp extends Component {
         return (
             <div id="chess-app">
                 <div id="interface-container">
-                    <Chessboard boardConfig={current.boardConfig} />
+                    <DragDropContext onDragEnd>
+                        <Chessboard boardConfig={current.boardConfig} />
+                    </DragDropContext>
+
                     <UserInterface />
                 </div>
             </div>

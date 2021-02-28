@@ -2,17 +2,23 @@ import React, { Component } from "react";
 import imageSelector from "../ui/imageSelector";
 import notationConverter from "../ui/notationConverter";
 
-class Piece extends Component {
-    constructor(props, char) {
-        super(props, char);
+class Piece {
+    constructor(chessBoardProps, char) {
         this.char = char;
-        this.imageFile = imageSelector(char);
         this.numberCoords = ["", ""];
         this.chessCoords = notationConverter(this.numberCoords);
+        this.imageFile = imageSelector(char);
+        this.updatePositionState = this.updatePositionState.bind(this);
+    }
+
+    updatePositionState(newNumCoords) {
+        this.numberCoords = newNumCoords;
+        this.chessCoords = notationConverter(newNumCoords);
     }
 
     render() {
-        <img src={this.imageFile} alt="" />;
+        const { piece, imageFile } = this.props;
+        return <img src={imageFile}></img>;
     }
 }
 

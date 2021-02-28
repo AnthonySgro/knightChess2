@@ -4,6 +4,7 @@ function imageSelector(pieceStr) {
     if (pieceStr === " ") {
         return "../images/placeholder.png";
     }
+
     //case insensitive for piece and color determination
     const charCap = pieceStr.toUpperCase();
 

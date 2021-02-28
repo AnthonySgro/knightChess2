@@ -1,6 +1,8 @@
 import React, { Component } from "react";
 import notationConverter from "../../ui-functions/notationConverter";
 import { isEmpty } from "lodash";
+import ChessPiece from "../chessPiece/chessPiece.jsx";
+import { Droppable } from "react-beautiful-dnd";
 
 class Tile extends Component {
     constructor(props) {
@@ -10,6 +12,46 @@ class Tile extends Component {
         this.state = {
             piecePresent: props.tileConfig.length ? true : false,
         };
+    }
+
+    //if piece, render the react component for it, else, just show a placeholder
+    renderPiece(piecePresent, imageFile) {
+        const piece = this.props.tileConfig;
+        const numberCoords = this.numberCoords;
+        const dropId = this.chessCoords.join("");
+        const PieceToRender = piece;
+        if (piecePresent) {
+            return (
+                <Droppable droppableId={dropId}>
+                    {(provided) => {
+                        <ChessPiece
+                            {...provided.droppableProps}
+                            innerRef={provided.innerRef}
+                            numberCoords={numberCoords}
+                            piece={piece}
+                            imageFile={imageFile}
+                        >
+                            {provided.placeholder}
+                        </ChessPiece>;
+                    }}
+                </Droppable>
+            );
+        } else {
+            return (
+                <Droppable droppableId={dropId}>
+                    {(provided) => {
+                        <img
+                            {...provided.droppableProps}
+                            innerRef={provided.innerRef}
+                            src={imageFile}
+                            alt=""
+                        >
+                            {provided.placeholder}
+                        </img>;
+                    }}
+                </Droppable>
+            );
+        }
     }
 
     render() {
@@ -22,8 +64,7 @@ class Tile extends Component {
         //if piece, sets piece coordinates to this tile
         if (piecePresent) {
             piece = this.props.tileConfig;
-            piece.numberCoords = this.numberCoords;
-            piece.chessCoords = notationConverter(this.numberCoords);
+            //piece.updatePositionState(this.numberCoords);
         }
 
         //get image file from piece
@@ -42,7 +83,12 @@ class Tile extends Component {
         //to render
         return (
             <div id={chessCoordsConcat} className={tileClasses}>
-                <img src={imageFile} alt=""></img>
+                {this.renderPiece(
+                    piece,
+                    piecePresent,
+                    imageFile,
+                    this.numberCoords,
+                )}
             </div>
         );
     }
