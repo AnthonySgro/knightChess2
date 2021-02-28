@@ -43,7 +43,7 @@ class ChessApp extends Component {
 
     componentDidMount(prevProps) {
         let R1 = new Rook(this.props, "R");
-        let N1 = new Knight(this.props, "K");
+        let N1 = new Knight(this.props, "N");
         let B1 = new Bishop(this.props, "B");
         let Q1 = new Queen(this.props, "Q");
         let K1 = new King(this.props, "K");
