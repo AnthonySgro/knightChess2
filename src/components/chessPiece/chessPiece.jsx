@@ -4,8 +4,12 @@ import { useDrag, DragPreviewImage } from "react-dnd";
 function ChessPiece(props) {
     const { piece, imageFile, numberCoords } = props;
 
+    //sets piece coordinates
+    piece.updatePositionState(numberCoords);
+    const chessCoords = `${piece.chessCoords[0]}${piece.chessCoords[1]}`;
+
     // drag and drop configuration
-    const id = `${piece.color + piece.char}`;
+    const id = `${chessCoords + "_" + piece.char + "_" + piece.color}`;
     const [{ isDragging }, drag, preview] = useDrag({
         item: { type: "piece", id: id },
         collect: (monitor) => {
