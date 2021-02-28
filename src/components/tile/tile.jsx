@@ -42,7 +42,7 @@ class Tile extends Component {
         //to render
         return (
             <div id={chessCoordsConcat} className={tileClasses}>
-                <img src="/images/placeholder.png" alt=""></img>
+                <img src={imageFile} alt=""></img>
             </div>
         );
     }

@@ -2,7 +2,7 @@
 function imageSelector(pieceStr) {
     //if empty, placeholder
     if (pieceStr === " ") {
-        return "../dist/images/placeholder.png";
+        return "../images/placeholder.png";
     }
     //case insensitive for piece and color determination
     const charCap = pieceStr.toUpperCase();
@@ -37,7 +37,7 @@ function imageSelector(pieceStr) {
         piece = "king";
     }
 
-    return `../dist/images/${color}-${piece}.png`;
+    return `../images/${color}-${piece}.png`;
 }
 
 export default imageSelector;

@@ -1,6 +1,6 @@
 import React, { Component } from "react";
-import imageSelector from "../ui-functions/imageSelector";
-import notationConverter from "../ui-functions/notation-converter";
+import imageSelector from "../ui/imageSelector";
+import notationConverter from "../ui/notationConverter";
 
 class Piece extends Component {
     constructor(props, char) {

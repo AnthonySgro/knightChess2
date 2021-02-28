@@ -1,7 +1,6 @@
 import React, { Component } from "react";
 import Chessboard from "./chessboard/chessboard.jsx";
 import UserInterface from "./ui/userInterface.jsx";
-import imageSelector from "./use/imageSelector.jsx";
 import {
     Pawn,
     Rook,
@@ -41,7 +40,7 @@ class ChessApp extends Component {
         };
     }
 
-    componentDidMount() {
+    componentDidMount(prevProps) {
         let R1 = new Rook(this.props, "R");
         let N1 = new Knight(this.props, "N");
         let B1 = new Bishop(this.props, "B");
@@ -83,32 +82,31 @@ class ChessApp extends Component {
         const blackCollection = [r1,n1,b1,q1,k1,b2,n2,r2,p1,p2,p3,p4,p5,p6,p7,p8];
 
         //initial board configuration
-        const initBoardConfig = {
-            boardConfig: [
-                [r1, n1, b1, q1, k1, b2, n2, r2],
-                [p1, p2, p3, p4, p5, p6, p7, p8],
-                [{}, {}, {}, {}, {}, {}, {}, {}],
-                [{}, {}, {}, {}, {}, {}, {}, {}],
-                [{}, {}, {}, {}, {}, {}, {}, {}],
-                [{}, {}, {}, {}, {}, {}, {}, {}],
-                [P1, P2, P3, P4, P5, P6, P7, P8],
-                [R1, N1, B1, Q1, K1, B2, N2, R2],
-            ],
-        },
+        const boardConfig = [
+            [r1, n1, b1, q1, k1, b2, n2, r2],
+            [p1, p2, p3, p4, p5, p6, p7, p8],
+            [{}, {}, {}, {}, {}, {}, {}, {}],
+            [{}, {}, {}, {}, {}, {}, {}, {}],
+            [{}, {}, {}, {}, {}, {}, {}, {}],
+            [{}, {}, {}, {}, {}, {}, {}, {}],
+            [P1, P2, P3, P4, P5, P6, P7, P8],
+            [R1, N1, B1, Q1, K1, B2, N2, R2],
+        ];
 
         //initializes starting board configuration and piece collections
         this.setState({
             whitePieces: whiteCollection,
             blackPieces: blackCollection,
             allPieces: whiteCollection.concat(blackCollection),
-            history: [initBoardConfig],
+            history: [{ boardConfig }],
         });
     }
 
     render() {
         const history = this.state.history;
         const current = history[this.state.stepNumber];
-        
+
+        console.log(current);
         //displays whatever we set 'current' to
         return (
             <div id="chess-app">
