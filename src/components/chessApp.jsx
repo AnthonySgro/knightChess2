@@ -144,7 +144,7 @@ class ChessApp extends Component {
         //**everything before is guaranteed to happen**
 
         //returns an object containing information about the move result
-        const result = chess(to, from, movedPiece, oldBoardConfig);
+        const result = chess(to, from, movedPiece, oldBoardConfig, true);
         if (!result.validMove) {
             return;
         }

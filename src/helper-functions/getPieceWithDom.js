@@ -14,7 +14,7 @@ function getPieceWithDom(elem, boardConfig) {
 }
 
 function getPieceWithCoords(coords, boardConfig) {
-    if (coords === undefined) {
+    if (coords === undefined || coords === null) {
         return undefined;
     }
 
