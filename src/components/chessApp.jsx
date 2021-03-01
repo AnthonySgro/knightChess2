@@ -4,6 +4,7 @@ import UserInterface from "./ui/userInterface.jsx";
 import convertNotation from "./ui/notationConverter";
 import boardStateConverter from "./ui/boardStateConverter";
 import { cloneDeep, isEmpty } from "lodash";
+import { playMoveSound, playCaptureSound } from "./ui/sounds";
 import {
     Piece,
     Pawn,
@@ -42,12 +43,17 @@ class ChessApp extends Component {
             blackPieces: [],
             allPieces: [],
         };
+
+        //dragging props
         this.draggingPiece = {};
         this.idToPiece = this.idToPiece.bind(this);
         this.moveHandler = this.moveHandler.bind(this);
         this.dragStartHandlerProp = this.dragStartHandler.bind(this);
         this.dragEnterHandlerProp = this.dragEnterHandler.bind(this);
         this.dragLeaveHandlerProp = this.dragLeaveHandler.bind(this);
+
+        //remembers
+        this.lastMoveSquares = [];
     }
 
     componentDidMount(prevProps) {
@@ -123,7 +129,7 @@ class ChessApp extends Component {
     //takes in a unique pieceId, origin, and dropped square and returns an updated history entry
     //will eventually use logic to parse out incorrect moves but we are just tryna work rn
     moveHandler(oldBoardConfig, pieceId, from, to) {
-        //remove filter
+        //remove filter of target tile
         const targetTile = document.querySelector(`#${to}`);
         targetTile.classList.remove("dragged-over");
 
@@ -137,6 +143,21 @@ class ChessApp extends Component {
         if (to === from) {
             return;
         }
+
+        //everything before is guaranteed to happen
+        //***MOVE LOGIC WILL GO HERE****
+        //everything after only happens if it is a valid move
+
+        //play sound
+        const imageFileOfTarget = targetTile.firstChild.src;
+        console.log(imageFileOfTarget);
+        if (imageFileOfTarget !== "/images/placeholder.png") {
+            playMoveSound();
+        } else {
+            playCaptureSound();
+        }
+
+        this.lastMoveSquares = [from, to];
 
         //get my coordinates prepped to work with the history object
         const toNumCoords = convertNotation([to[0], to[1]]);
@@ -152,18 +173,22 @@ class ChessApp extends Component {
         boardConfig[toCoord[0]][toCoord[1]] = movedPiece;
         const newStepNumber = this.state.stepNumber + 1;
 
-        //get reference to current state and change
+        //get reference to current state
         const history = this.state.history;
         const newBoardPosition = { boardConfig };
 
+        //updates whole board and adds history log
         this.setState({
+            whiteIsNext: !this.state.whiteIsNext,
             stepNumber: newStepNumber,
             history: [...history, newBoardPosition],
         });
     }
 
     //purely for getting the piece that is being dragged
-    dragStartHandler(e) {}
+    dragStartHandler(e, piece) {
+        this.draggingPiece = piece;
+    }
 
     //aesthetics for entering a square on drag
     dragEnterHandler(e) {
@@ -171,8 +196,14 @@ class ChessApp extends Component {
         e.preventDefault();
 
         const pieceDragging = !isEmpty(this.draggingPiece);
+        const draggingPieceOriginTile = document.querySelector(
+            `#${this.draggingPiece.flatChessCoords}`,
+        );
 
-        if (pieceDragging) {
+        const notOverOrigin = e.target.parentNode !== draggingPieceOriginTile;
+
+        //if we are dragging a piece over something other than its origin square
+        if (pieceDragging && notOverOrigin) {
             //when we enter a square, we want to edit the tileFilter
             const tile = e.target.parentNode;
             const tileFilter = tile.parentNode;
@@ -206,6 +237,7 @@ class ChessApp extends Component {
                 <div id="interface-container">
                     <Chessboard
                         boardConfig={current.boardConfig}
+                        lastMoveSquares={this.lastMoveSquares}
                         onMove={this.moveHandler}
                         onDragEnter={this.dragEnterHandlerProp}
                         onDragLeave={this.dragLeaveHandlerProp}

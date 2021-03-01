@@ -21,7 +21,14 @@ function renderPiece(piece, piecePresent, imageFile, numberCoords) {
 
 //our actual tile component
 function Tile(props) {
-    const { boardConfig, tileConfig, row, col, rowStartColor } = props;
+    const {
+        boardConfig,
+        tileConfig,
+        row,
+        col,
+        rowStartColor,
+        lastMoveSquares,
+    } = props;
 
     //gets coordinate pairs
     const numberCoords = [col, row];
@@ -46,9 +53,21 @@ function Tile(props) {
     const color = rowStartColor ? "light-square" : "dark-square";
     const selectable = piecePresent ? " selectable" : "";
 
-    //concatenates class and id names
-    const tileClasses = `${color}` + `${selectable}` + " tile";
+    //determines if square was involved in last move for color filtering
     const chessCoordsConcat = chessCoords.join("");
+    const targetOfLastMove = chessCoordsConcat === lastMoveSquares[0];
+    const originOfLastMove = chessCoordsConcat === lastMoveSquares[1];
+    const involvedInLastMove = targetOfLastMove || originOfLastMove;
+    let involvedInLastMoveClassName = involvedInLastMove
+        ? " involved-in-last-move-tile-" + color
+        : "";
+
+    //concatenates class and id names
+    const tileClasses =
+        `${color}` +
+        `${selectable}` +
+        `${involvedInLastMoveClassName}` +
+        " tile";
 
     //drag and drop configuration
     const [, drop] = useDrop({
@@ -67,7 +86,7 @@ function Tile(props) {
             ref={drop}
             onDragEnter={() => props.onDragEnter(event)}
             onDragLeave={() => props.onDragLeave(event)}
-            onDragStart={props.onDragStart}
+            onDragStart={() => props.onDragStart(event, piece)}
         >
             {renderPiece(piece, piecePresent, imageFile, numberCoords)}
         </div>

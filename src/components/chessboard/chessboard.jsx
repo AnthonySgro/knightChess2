@@ -7,13 +7,19 @@ class Chessboard extends Component {
         return (
             //row properties
             <Row
+                //board configuration info
                 boardConfig={this.props.boardConfig}
                 rowConfig={this.props.boardConfig[row]}
                 row={7 - row}
+                //row color seeder
                 rowStartColor={rowColorInit}
+                //tiles involved in last move
+                lastMoveSquares={this.props.lastMoveSquares}
+                //dragging/moving functions
                 onMove={this.props.onMove}
                 onDragEnter={this.props.onDragEnter}
                 onDragLeave={this.props.onDragLeave}
+                onDragStart={this.props.onDragStart}
             />
         );
     }

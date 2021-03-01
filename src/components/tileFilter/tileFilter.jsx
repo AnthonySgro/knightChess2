@@ -20,14 +20,20 @@ class TileFilter extends Component {
         return (
             <div id={id} className="default-filter">
                 <Tile
+                    //board configuration
                     boardConfig={this.props.boardConfig}
                     tileConfig={tileConfig}
                     row={row}
                     col={col}
+                    //color seeding
                     rowStartColor={rowStartColor}
+                    //tiles involved in last move
+                    lastMoveSquares={this.props.lastMoveSquares}
+                    //dragging/moving functions
                     onMove={this.props.onMove}
                     onDragEnter={this.props.onDragEnter}
                     onDragLeave={this.props.onDragLeave}
+                    onDragStart={this.props.onDragStart}
                 />
             </div>
         );

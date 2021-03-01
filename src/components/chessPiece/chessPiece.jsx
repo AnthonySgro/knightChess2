@@ -23,7 +23,7 @@ function ChessPiece(props) {
             <img
                 ref={drag}
                 src={imageFile}
-                style={{ opacity: isDragging ? 0 : 1 }}
+                style={{ opacity: isDragging ? 0.5 : 1 }}
             ></img>
         </React.Fragment>
     );
