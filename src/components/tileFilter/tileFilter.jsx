@@ -18,12 +18,16 @@ class TileFilter extends Component {
 
         //to render
         return (
-            <div id={id} className="tileFilter">
+            <div id={id} className="default-filter">
                 <Tile
+                    boardConfig={this.props.boardConfig}
                     tileConfig={tileConfig}
                     row={row}
                     col={col}
                     rowStartColor={rowStartColor}
+                    onMove={this.props.onMove}
+                    onDragEnter={this.props.onDragEnter}
+                    onDragLeave={this.props.onDragLeave}
                 />
             </div>
         );

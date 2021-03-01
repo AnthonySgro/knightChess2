@@ -21,7 +21,7 @@ function renderPiece(piece, piecePresent, imageFile, numberCoords) {
 
 //our actual tile component
 function Tile(props) {
-    const { tileConfig, row, col, rowStartColor } = props;
+    const { boardConfig, tileConfig, row, col, rowStartColor } = props;
 
     //gets coordinate pairs
     const numberCoords = [col, row];
@@ -54,13 +54,21 @@ function Tile(props) {
     const [, drop] = useDrop({
         accept: "piece",
         drop: (item) => {
-            console.log(item);
+            const [fromPosition] = item.id.split("_");
+            props.onMove(boardConfig, item.id, fromPosition, chessCoordsConcat);
         },
     });
 
     //to render
     return (
-        <div id={chessCoordsConcat} className={tileClasses} ref={drop}>
+        <div
+            id={chessCoordsConcat}
+            className={tileClasses}
+            ref={drop}
+            onDragEnter={() => props.onDragEnter(event)}
+            onDragLeave={() => props.onDragLeave(event)}
+            onDragStart={props.onDragStart}
+        >
             {renderPiece(piece, piecePresent, imageFile, numberCoords)}
         </div>
     );

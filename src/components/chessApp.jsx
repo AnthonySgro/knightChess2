@@ -1,6 +1,9 @@
 import React, { Component } from "react";
 import Chessboard from "./chessboard/chessboard.jsx";
 import UserInterface from "./ui/userInterface.jsx";
+import convertNotation from "./ui/notationConverter";
+import boardStateConverter from "./ui/boardStateConverter";
+import { cloneDeep, isEmpty } from "lodash";
 import {
     Piece,
     Pawn,
@@ -39,6 +42,12 @@ class ChessApp extends Component {
             blackPieces: [],
             allPieces: [],
         };
+        this.draggingPiece = {};
+        this.idToPiece = this.idToPiece.bind(this);
+        this.moveHandler = this.moveHandler.bind(this);
+        this.dragStartHandlerProp = this.dragStartHandler.bind(this);
+        this.dragEnterHandlerProp = this.dragEnterHandler.bind(this);
+        this.dragLeaveHandlerProp = this.dragLeaveHandler.bind(this);
     }
 
     componentDidMount(prevProps) {
@@ -103,18 +112,105 @@ class ChessApp extends Component {
         });
     }
 
-    onDragEnd(result) {}
+    //this function is responsible for returning a piece object given an id
+    idToPiece(pieceId) {
+        const [movedPiece] = this.state.allPieces.filter(
+            (piece) => piece.id === pieceId,
+        );
+        return movedPiece;
+    }
+
+    //takes in a unique pieceId, origin, and dropped square and returns an updated history entry
+    //will eventually use logic to parse out incorrect moves but we are just tryna work rn
+    moveHandler(oldBoardConfig, pieceId, from, to) {
+        //remove filter
+        const targetTile = document.querySelector(`#${to}`);
+        targetTile.classList.remove("dragged-over");
+
+        //get reference to our piece object
+        const movedPiece = this.idToPiece(pieceId);
+
+        //resets dragging piece
+        this.draggingPiece = {};
+
+        //if piece didn't move, don't do anything
+        if (to === from) {
+            return;
+        }
+
+        //get my coordinates prepped to work with the history object
+        const toNumCoords = convertNotation([to[0], to[1]]);
+        const toCoord = boardStateConverter(toNumCoords);
+        const frNumCoords = convertNotation([from[0], from[1]]);
+        const frCoord = boardStateConverter(frNumCoords);
+
+        //deep copy of the board configuration so we don't alter state
+        let boardConfig = cloneDeep(oldBoardConfig);
+
+        //perform move
+        boardConfig[frCoord[0]][frCoord[1]] = {};
+        boardConfig[toCoord[0]][toCoord[1]] = movedPiece;
+        const newStepNumber = this.state.stepNumber + 1;
+
+        //get reference to current state and change
+        const history = this.state.history;
+        const newBoardPosition = { boardConfig };
+
+        this.setState({
+            stepNumber: newStepNumber,
+            history: [...history, newBoardPosition],
+        });
+    }
+
+    //purely for getting the piece that is being dragged
+    dragStartHandler(e) {}
+
+    //aesthetics for entering a square on drag
+    dragEnterHandler(e) {
+        e.stopPropagation();
+        e.preventDefault();
+
+        const pieceDragging = !isEmpty(this.draggingPiece);
+
+        if (pieceDragging) {
+            //when we enter a square, we want to edit the tileFilter
+            const tile = e.target.parentNode;
+            const tileFilter = tile.parentNode;
+            tile.classList.add("dragged-over");
+        }
+    }
+
+    //aesthetics for leaving a square on drag
+    dragLeaveHandler(e) {
+        e.preventDefault();
+
+        const pieceDragging = !isEmpty(this.draggingPiece);
+
+        if (pieceDragging) {
+            const tile = e.target.parentNode;
+            const tileFilter = tile.parentNode;
+            tile.classList.remove("dragged-over");
+        }
+    }
 
     render() {
         const history = this.state.history;
         const current = history[this.state.stepNumber];
 
-        console.log(current);
+        //console log the history every time for fun
+        console.log(history);
+
         //displays whatever we set 'current' to
         return (
             <div id="chess-app">
                 <div id="interface-container">
-                    <Chessboard boardConfig={current.boardConfig} />
+                    <Chessboard
+                        boardConfig={current.boardConfig}
+                        onMove={this.moveHandler}
+                        onDragEnter={this.dragEnterHandlerProp}
+                        onDragLeave={this.dragLeaveHandlerProp}
+                        onDragStart={this.dragStartHandlerProp}
+                    />
                     <UserInterface />
                 </div>
             </div>

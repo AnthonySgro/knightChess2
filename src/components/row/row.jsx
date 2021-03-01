@@ -5,10 +5,14 @@ class Row extends Component {
     renderTileFilter(col, rowColorInit) {
         return (
             <TileFilter
+                boardConfig={this.props.boardConfig}
                 tileConfig={this.props.rowConfig[col]}
                 row={this.props.row}
                 col={col}
                 rowStartColor={rowColorInit}
+                onMove={this.props.onMove}
+                onDragEnter={this.props.onDragEnter}
+                onDragLeave={this.props.onDragLeave}
             />
         );
     }

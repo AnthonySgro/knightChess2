@@ -14,18 +14,30 @@ class Piece {
         //coordinate info
         this.numberCoords = ["", ""];
         this.chessCoords = notationConverter(this.numberCoords);
+        this.flatChessCoords = "";
 
         //image info
         this.imageFile = imageSelector(char);
 
         //binding coordinate update function to instance
         this.updatePositionState = this.updatePositionState.bind(this);
+
+        //unique id
+        this.id = "";
     }
 
-    //updates coordinates
+    //updates coordinates and id
     updatePositionState(newNumCoords) {
         this.numberCoords = newNumCoords;
         this.chessCoords = notationConverter(newNumCoords);
+        this.flatChessCoords = `${this.chessCoords[0]}${this.chessCoords[1]}`;
+        this.id = `${
+            this.flatChessCoords +
+            "_" +
+            this.char.toUpperCase() +
+            "_" +
+            this.color
+        }`;
     }
 
     render() {

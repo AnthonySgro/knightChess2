@@ -7,9 +7,13 @@ class Chessboard extends Component {
         return (
             //row properties
             <Row
+                boardConfig={this.props.boardConfig}
                 rowConfig={this.props.boardConfig[row]}
                 row={7 - row}
                 rowStartColor={rowColorInit}
+                onMove={this.props.onMove}
+                onDragEnter={this.props.onDragEnter}
+                onDragLeave={this.props.onDragLeave}
             />
         );
     }
