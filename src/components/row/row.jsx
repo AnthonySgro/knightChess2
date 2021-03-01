@@ -14,7 +14,7 @@ class Row extends Component {
                 rowStartColor={rowColorInit}
                 //tiles involved in last move
                 lastMoveSquares={this.props.lastMoveSquares}
-                //dragging/moving
+                //dragging/moving functions
                 onMove={this.props.onMove}
                 onDragEnter={this.props.onDragEnter}
                 onDragLeave={this.props.onDragLeave}

@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import notationConverter from "../../ui-functions/notationConverter";
+import notationConverter from "../../helper-functions/notationConverter";
 import { isEmpty } from "lodash";
 import ChessPiece from "../chessPiece/chessPiece.jsx";
 import { useDrop } from "react-dnd";

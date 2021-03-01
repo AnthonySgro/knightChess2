@@ -1,6 +1,6 @@
 import React, { Component } from "react";
-import imageSelector from "../ui/imageSelector";
-import notationConverter from "../ui/notationConverter";
+import imageSelector from "../helper-functions/imageSelector";
+import notationConverter from "../helper-functions/notationConverter";
 
 class Piece {
     constructor(chessBoardProps, char) {

@@ -1,10 +1,10 @@
 import React, { Component } from "react";
 import Chessboard from "./chessboard/chessboard.jsx";
 import UserInterface from "./ui/userInterface.jsx";
-import convertNotation from "./ui/notationConverter";
-import boardStateConverter from "./ui/boardStateConverter";
+import convertNotation from "../helper-functions/notationConverter";
+import boardStateConverter from "../helper-functions/boardStateConverter";
 import { cloneDeep, isEmpty } from "lodash";
-import { playMoveSound, playCaptureSound } from "./ui/sounds";
+import { playMoveSound, playCaptureSound } from "../helper-functions/sounds";
 import {
     Piece,
     Pawn,
@@ -13,7 +13,7 @@ import {
     Bishop,
     Queen,
     King,
-} from "./pieces/allPieceExport.jsx";
+} from "../pieces/allPieceExport.jsx";
 
 class ChessApp extends Component {
     constructor() {
@@ -150,13 +150,15 @@ class ChessApp extends Component {
 
         //play sound
         const imageFileOfTarget = targetTile.firstChild.src;
-        console.log(imageFileOfTarget);
-        if (imageFileOfTarget !== "/images/placeholder.png") {
+        if (
+            imageFileOfTarget === "http://localhost:9000/images/placeholder.png"
+        ) {
             playMoveSound();
         } else {
             playCaptureSound();
         }
 
+        //stores the squares involved in last move for a moment
         this.lastMoveSquares = [from, to];
 
         //get my coordinates prepped to work with the history object
@@ -196,17 +198,20 @@ class ChessApp extends Component {
         e.preventDefault();
 
         const pieceDragging = !isEmpty(this.draggingPiece);
-        const draggingPieceOriginTile = document.querySelector(
-            `#${this.draggingPiece.flatChessCoords}`,
-        );
+        let draggingPieceOriginTile;
+        let notOverOrigin;
 
-        const notOverOrigin = e.target.parentNode !== draggingPieceOriginTile;
+        if (pieceDragging) {
+            draggingPieceOriginTile = document.querySelector(
+                `#${this.draggingPiece.flatChessCoords}`,
+            );
+            notOverOrigin = e.target.parentNode !== draggingPieceOriginTile;
+        }
 
         //if we are dragging a piece over something other than its origin square
-        if (pieceDragging && notOverOrigin) {
+        if (pieceDragging && !!notOverOrigin) {
             //when we enter a square, we want to edit the tileFilter
             const tile = e.target.parentNode;
-            const tileFilter = tile.parentNode;
             tile.classList.add("dragged-over");
         }
     }

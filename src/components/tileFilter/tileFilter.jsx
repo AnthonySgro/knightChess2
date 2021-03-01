@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 import Tile from "../tile/tile.jsx";
-import notationConverter from "../../ui-functions/notationConverter";
+import notationConverter from "../../helper-functions/notationConverter";
 
 class TileFilter extends Component {
     constructor(props) {
