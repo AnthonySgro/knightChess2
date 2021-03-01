@@ -4,6 +4,11 @@ import notationConverter from "../helper-functions/notationConverter";
 
 //sets up a vector pointing to a tile
 function adjacentTile(from, direction, length, color) {
+    //if we get input from off the board, just return undefined
+    if (from === undefined) {
+        return undefined;
+    }
+
     const VALID_DIRECTIONS = [
         "up",
         "up-right",
@@ -76,11 +81,11 @@ function adjacentTile(from, direction, length, color) {
             break;
     }
 
-    //this should not happen, only for debugging in case I put length too high
-    if (resultCoords[0] < 0 || resultCoords[0] > 7) {
-        if (resultCoords[1] < 0 || resultCoords[1] > 7) {
-            return undefined;
-        }
+    //catches off-board moves before it returns a proper square
+    const xOffBoard = resultCoords[0] < 0 || resultCoords[0] > 7;
+    const yOffBoard = resultCoords[1] < 0 || resultCoords[1] > 7;
+    if (xOffBoard || yOffBoard) {
+        return undefined;
     }
 
     //returns chess coordinates

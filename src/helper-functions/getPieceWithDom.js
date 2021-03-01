@@ -3,6 +3,10 @@ import boardStateConverter from "./boardStateConverter";
 
 //returns piece instance with dom element
 function getPieceWithDom(elem, boardConfig) {
+    if (elem === undefined) {
+        return undefined;
+    }
+
     const coords = convertNotation(elem.id);
     const id = boardStateConverter(coords);
 
@@ -10,6 +14,10 @@ function getPieceWithDom(elem, boardConfig) {
 }
 
 function getPieceWithCoords(coords, boardConfig) {
+    if (coords === undefined) {
+        return undefined;
+    }
+
     const convCoords = convertNotation(coords);
     const id = boardStateConverter(convCoords);
 
