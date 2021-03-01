@@ -25,6 +25,8 @@ class TileFilter extends Component {
                     tileConfig={tileConfig}
                     row={row}
                     col={col}
+                    //player turn
+                    playerTurn={this.props.playerTurn}
                     //color seeding
                     rowStartColor={rowStartColor}
                     //tiles involved in last move

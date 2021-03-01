@@ -5,10 +5,13 @@ import ChessPiece from "../chessPiece/chessPiece.jsx";
 import { useDrop } from "react-dnd";
 
 //if piece, render the react component for it, else, just show a placeholder
-function renderPiece(piece, piecePresent, imageFile, numberCoords) {
+function renderPiece(piece, piecePresent, imageFile, numberCoords, playerTurn) {
     if (piecePresent) {
         return (
             <ChessPiece
+                //player turn
+                playerTurn={playerTurn}
+                //piece info
                 numberCoords={numberCoords}
                 piece={piece}
                 imageFile={imageFile}
@@ -28,6 +31,7 @@ function Tile(props) {
         col,
         rowStartColor,
         lastMoveSquares,
+        playerTurn,
     } = props;
 
     //gets coordinate pairs
@@ -81,14 +85,22 @@ function Tile(props) {
     //to render
     return (
         <div
+            //naming info
             id={chessCoordsConcat}
             className={tileClasses}
+            //drag n drop functions
             ref={drop}
             onDragEnter={() => props.onDragEnter(event)}
             onDragLeave={() => props.onDragLeave(event)}
             onDragStart={() => props.onDragStart(event, piece)}
         >
-            {renderPiece(piece, piecePresent, imageFile, numberCoords)}
+            {renderPiece(
+                piece,
+                piecePresent,
+                imageFile,
+                numberCoords,
+                playerTurn,
+            )}
         </div>
     );
 }

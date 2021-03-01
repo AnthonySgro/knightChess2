@@ -10,6 +10,8 @@ class Row extends Component {
                 tileConfig={this.props.rowConfig[col]}
                 row={this.props.row}
                 col={col}
+                //player turn
+                playerTurn={this.props.playerTurn}
                 //color seed info
                 rowStartColor={rowColorInit}
                 //tiles involved in last move

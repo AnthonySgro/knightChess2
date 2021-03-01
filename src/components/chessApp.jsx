@@ -1,20 +1,16 @@
 import React, { Component } from "react";
+
+//prettier-ignore
+import { Pawn, Rook, Knight, Bishop, Queen, King } from "../pieces/allPieceExport.jsx";
 import Chessboard from "./chessboard/chessboard.jsx";
 import UserInterface from "./ui/userInterface.jsx";
 import convertNotation from "../helper-functions/notationConverter";
 import boardStateConverter from "../helper-functions/boardStateConverter";
 import { cloneDeep, isEmpty } from "lodash";
 import { playMoveSound, playCaptureSound } from "../helper-functions/sounds";
-import {
-    Piece,
-    Pawn,
-    Rook,
-    Knight,
-    Bishop,
-    Queen,
-    King,
-} from "../pieces/allPieceExport.jsx";
+import chess from "../chessLogic/chess";
 
+//ChessApp Component renders entire application
 class ChessApp extends Component {
     constructor() {
         super();
@@ -145,7 +141,9 @@ class ChessApp extends Component {
         }
 
         //everything before is guaranteed to happen
-        //***MOVE LOGIC WILL GO HERE****
+
+        //const legalMove = chess.move(from, to);
+
         //everything after only happens if it is a valid move
 
         //play sound
@@ -194,22 +192,28 @@ class ChessApp extends Component {
 
     //aesthetics for entering a square on drag
     dragEnterHandler(e) {
+        //stop the DOM from doing dumb things we don't want it to
         e.stopPropagation();
         e.preventDefault();
 
+        //figures out if we are dragging a piece
         const pieceDragging = !isEmpty(this.draggingPiece);
+        let correctTurn;
         let draggingPieceOriginTile;
         let notOverOrigin;
 
+        //if we are dragging a piece (correct input), we can set our variables
         if (pieceDragging) {
             draggingPieceOriginTile = document.querySelector(
                 `#${this.draggingPiece.flatChessCoords}`,
             );
             notOverOrigin = e.target.parentNode !== draggingPieceOriginTile;
+            correctTurn = this.draggingPiece.white === this.state.whiteIsNext;
         }
 
         //if we are dragging a piece over something other than its origin square
-        if (pieceDragging && !!notOverOrigin) {
+        //and it is the correct turn!
+        if (pieceDragging && !!notOverOrigin && correctTurn) {
             //when we enter a square, we want to edit the tileFilter
             const tile = e.target.parentNode;
             tile.classList.add("dragged-over");
@@ -221,8 +225,15 @@ class ChessApp extends Component {
         e.preventDefault();
 
         const pieceDragging = !isEmpty(this.draggingPiece);
+        let correctTurn;
 
+        //if we are dragging a piece, figure out if it is that player's turn
         if (pieceDragging) {
+            correctTurn = this.draggingPiece.white === this.state.whiteIsNext;
+        }
+
+        //if it is, we can continue with our aesthetics
+        if (pieceDragging && correctTurn) {
             const tile = e.target.parentNode;
             const tileFilter = tile.parentNode;
             tile.classList.remove("dragged-over");
@@ -242,6 +253,7 @@ class ChessApp extends Component {
                 <div id="interface-container">
                     <Chessboard
                         boardConfig={current.boardConfig}
+                        playerTurn={this.state.whiteIsNext}
                         lastMoveSquares={this.lastMoveSquares}
                         onMove={this.moveHandler}
                         onDragEnter={this.dragEnterHandlerProp}
