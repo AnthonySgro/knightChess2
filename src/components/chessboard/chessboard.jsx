@@ -11,7 +11,7 @@ class Chessboard extends Component {
                 boardConfig={this.props.boardConfig}
                 rowConfig={this.props.boardConfig[row]}
                 row={7 - row}
-                //state
+                //player turn
                 playerTurn={this.props.playerTurn}
                 //row color seeder
                 rowStartColor={rowColorInit}

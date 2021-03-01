@@ -140,11 +140,12 @@ class ChessApp extends Component {
             return;
         }
 
-        //everything before is guaranteed to happen
+        //**everything before is guaranteed to happen**
 
-        //const legalMove = chess.move(from, to);
+        //returns an object containing information about the move result
+        const moveResultObject = chess(to, from, movedPiece, oldBoardConfig);
 
-        //everything after only happens if it is a valid move
+        //**everything after only happens if it is a valid move**
 
         //play sound
         const imageFileOfTarget = targetTile.firstChild.src;

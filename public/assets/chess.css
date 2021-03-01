@@ -19,6 +19,10 @@ img {
     display: block;
 }
 
+.dragImage {
+    transform: scale(1.5);
+}
+
 .selectable {
     cursor: pointer;
 }
