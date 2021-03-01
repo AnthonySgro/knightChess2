@@ -9,6 +9,7 @@ import boardStateConverter from "../helper-functions/boardStateConverter";
 import { cloneDeep, isEmpty } from "lodash";
 import { playMoveSound, playCaptureSound } from "../helper-functions/sounds";
 import chess from "../chessLogic/chess";
+import { getPieceWithDom } from "../helper-functions/getPieceWithDom";
 
 //ChessApp Component renders entire application
 class ChessApp extends Component {
@@ -143,7 +144,10 @@ class ChessApp extends Component {
         //**everything before is guaranteed to happen**
 
         //returns an object containing information about the move result
-        const moveResultObject = chess(to, from, movedPiece, oldBoardConfig);
+        const result = chess(to, from, movedPiece, oldBoardConfig);
+        if (!result.validMove) {
+            return;
+        }
 
         //**everything after only happens if it is a valid move**
 
@@ -198,26 +202,38 @@ class ChessApp extends Component {
         e.preventDefault();
 
         //figures out if we are dragging a piece
+        const target = e.target.parentNode;
         const pieceDragging = !isEmpty(this.draggingPiece);
+
+        //current config
+        const history = this.state.history;
+        const current = history[this.state.stepNumber];
+
+        //to fill
         let correctTurn;
         let draggingPieceOriginTile;
         let notOverOrigin;
+        let notSameColor;
 
         //if we are dragging a piece (correct input), we can set our variables
         if (pieceDragging) {
             draggingPieceOriginTile = document.querySelector(
                 `#${this.draggingPiece.flatChessCoords}`,
             );
-            notOverOrigin = e.target.parentNode !== draggingPieceOriginTile;
+            notOverOrigin = target !== draggingPieceOriginTile;
+            const highlightedPiece = getPieceWithDom(
+                target,
+                current.boardConfig,
+            );
+            notSameColor = highlightedPiece.white !== this.state.whiteIsNext;
             correctTurn = this.draggingPiece.white === this.state.whiteIsNext;
         }
 
         //if we are dragging a piece over something other than its origin square
         //and it is the correct turn!
-        if (pieceDragging && !!notOverOrigin && correctTurn) {
+        if (pieceDragging && !!notOverOrigin && correctTurn && notSameColor) {
             //when we enter a square, we want to edit the tileFilter
-            const tile = e.target.parentNode;
-            tile.classList.add("dragged-over");
+            target.classList.add("dragged-over");
         }
     }
 

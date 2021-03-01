@@ -5,6 +5,7 @@ class Pawn extends Piece {
         super(props, char);
         this.name = "Pawn";
         this.attackingSquares = [];
+        this.moveTwoAvailable = true;
     }
 }
 
