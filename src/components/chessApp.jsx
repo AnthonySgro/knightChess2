@@ -39,21 +39,22 @@ class ChessApp extends Component {
             //initializes game to move 0 and white-to-move
             stepNumber: 0,
             whiteIsNext: true,
-            whitePieces: [],
-            blackPieces: [],
-            allPieces: [],
         };
 
         //dragging props
         this.draggingPiece = {};
+        this.draggingPieceMoveable = [];
+
         this.idToPiece = this.idToPiece.bind(this);
         this.moveHandler = this.moveHandler.bind(this);
         this.dragStartHandlerProp = this.dragStartHandler.bind(this);
         this.dragEnterHandlerProp = this.dragEnterHandler.bind(this);
         this.dragLeaveHandlerProp = this.dragLeaveHandler.bind(this);
-
-        //remembers
-        this.lastMoveSquares = [];
+        (this.whitePieces = []),
+            (this.blackPieces = []),
+            (this.allPieces = []),
+            //remembers
+            (this.lastMoveSquares = []);
     }
 
     componentDidMount(prevProps) {
@@ -109,18 +110,19 @@ class ChessApp extends Component {
             [R1, N1, B1, Q1, K1, B2, N2, R2],
         ];
 
+        this.whitePieces = whiteCollection;
+        this.blackPieces = blackCollection;
+        this.allPieces = whiteCollection.concat(blackCollection);
+
         //initializes starting board configuration and piece collections
         this.setState({
-            whitePieces: whiteCollection,
-            blackPieces: blackCollection,
-            allPieces: whiteCollection.concat(blackCollection),
             history: [{ boardConfig }],
         });
     }
 
     //this function is responsible for returning a piece object given an id
     idToPiece(pieceId) {
-        const [movedPiece] = this.state.allPieces.filter(
+        const [movedPiece] = this.allPieces.filter(
             (piece) => piece.id === pieceId,
         );
         return movedPiece;
@@ -154,19 +156,48 @@ class ChessApp extends Component {
             return;
         }
 
+        // i do not understand why this breaks everything but it does
+        // this.whitePieces = result.whitePieces;
+        // this.blackPieces = result.blackPieces;
+        // this.allPieces = result.allPieces;
+
         //**everything after only happens if it is a valid move**
 
+        const placeholder = "http://localhost:9000/images/placeholder.png";
+        const validDot = "http://localhost:9000/images/validMoveDot.png";
         //play sound
         const imageFileOfTarget = targetTile.firstChild.src;
         if (
-            imageFileOfTarget ===
-                "http://localhost:9000/images/placeholder.png" &&
+            (imageFileOfTarget === placeholder ||
+                imageFileOfTarget === validDot) &&
             !result.enPassantEvent
         ) {
             playMoveSound();
         } else {
             playCaptureSound();
         }
+
+        //if pawn move, it lost right to initial two square move
+        // if (movedPiece instanceof Pawn) {
+        //     this.allPieces.forEach((somePiece) => {
+        //         if (somePiece === movedPiece) {
+        //             somePiece.moveTwoAvailable = false;
+        //         }
+        //     });
+        // }
+
+        // pawn and king have special moves we must take away if they moved
+        this.allPieces.forEach((somePiece) => {
+            if (somePiece === movedPiece) {
+                //if you move a pawn, loses two step move
+                if (movedPiece instanceof Pawn) {
+                    somePiece.moveTwoAvailable = false;
+                    //if you move a king, loses castling rights
+                } else if (movedPiece instanceof King) {
+                    somePiece.castlingAvailable = false;
+                }
+            }
+        });
 
         //stores the squares involved in last move for a moment
         this.lastMoveSquares = [from, to];
@@ -191,9 +222,66 @@ class ChessApp extends Component {
 
     //purely for getting the piece that is being dragged
     dragStartHandler(e, piece) {
+        this.draggingPieceMoveable = [];
         this.draggingPiece = piece;
+        if (isEmpty(piece)) {
+            return;
+        }
+        const originSquare = piece.flatChessCoords;
         const history = this.state.history;
-        const current = history[this.state.stepNumber];
+        const { boardConfig } = history[this.state.stepNumber];
+
+        for (let col = 0; col < 8; col++) {
+            for (let row = 0; row < 8; row++) {
+                //only allow this for whoever's turn it is
+                if (this.draggingPiece.white === this.state.whiteIsNext) {
+                    //cycle through every tile to see valid moves
+                    const tile = convertNotation([col, row]).join("");
+                    const tileElement = document.querySelector(`#${tile}`);
+
+                    //is valid move?
+                    const result = chess(
+                        tile,
+                        originSquare,
+                        piece,
+                        boardConfig,
+                        true,
+                    );
+
+                    if (result.validMove) {
+                        this.draggingPieceMoveable.push(tileElement);
+                    }
+                }
+            }
+        }
+
+        //search the valid moves of whatever we are dragging
+        for (let i = 0; i < this.draggingPieceMoveable.length; i++) {
+            //get the piece
+            const curElement = this.draggingPieceMoveable[i];
+            const tilePiece = getPieceWithDom(curElement, boardConfig);
+
+            //if there's no piece we will style differently
+            if (isEmpty(tilePiece)) {
+                // this.draggingPieceMoveable[i].firstChild.src =
+                //     "http://localhost:9000/images/validMoveDot.png";
+                curElement.classList.add("moveable");
+            } else {
+                if (curElement.parentNode.classList.contains("light-square")) {
+                    curElement.classList.add(
+                        "moveable-capturable-light-square",
+                    );
+                } else if (
+                    curElement.parentNode.classList.contains("dark-square")
+                ) {
+                    curElement.classList.add("moveable-capturable-dark-square");
+                }
+
+                curElement.parentNode.classList.add(
+                    "moveable-capturable-parent",
+                );
+            }
+        }
     }
 
     //aesthetics for entering a square on drag
@@ -234,7 +322,9 @@ class ChessApp extends Component {
         //and it is the correct turn!
         if (pieceDragging && !!notOverOrigin && correctTurn && notSameColor) {
             //when we enter a square, we want to edit the tileFilter
-            target.classList.add("dragged-over");
+            if (this.draggingPieceMoveable.includes(e.target.parentNode)) {
+                target.classList.add("dragged-over");
+            }
         }
     }
 

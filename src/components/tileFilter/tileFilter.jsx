@@ -12,13 +12,15 @@ class TileFilter extends Component {
     render() {
         //props
         const { tileConfig, row, col, rowStartColor } = this.props;
+        const color = rowStartColor ? "light-square" : "dark-square";
+        const classNames = `${color}`;
 
         //determines id
         const id = this.chessCoords.join("") + "-filter";
 
         //to render
         return (
-            <div id={id} className="default-filter">
+            <div id={id} className={classNames}>
                 <Tile
                     //board configuration
                     boardConfig={this.props.boardConfig}

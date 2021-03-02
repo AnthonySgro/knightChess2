@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import notationConverter from "../../helper-functions/notationConverter";
+import convertNotation from "../../helper-functions/notationConverter";
 import { isEmpty } from "lodash";
 import ChessPiece from "../chessPiece/chessPiece.jsx";
 import { useDrop } from "react-dnd";
@@ -36,7 +36,7 @@ function Tile(props) {
 
     //gets coordinate pairs
     const numberCoords = [col, row];
-    const chessCoords = notationConverter(numberCoords);
+    const chessCoords = convertNotation(numberCoords);
 
     //determines if we received a piece or a placeholder
     const piecePresent = !isEmpty(tileConfig);
@@ -54,7 +54,6 @@ function Tile(props) {
         : "/images/placeholder.png";
 
     //determines color of square
-    const color = rowStartColor ? "light-square" : "dark-square";
     const selectable = piecePresent ? " selectable" : "";
 
     //determines if square was involved in last move for color filtering
@@ -62,16 +61,15 @@ function Tile(props) {
     const targetOfLastMove = chessCoordsConcat === lastMoveSquares[0];
     const originOfLastMove = chessCoordsConcat === lastMoveSquares[1];
     const involvedInLastMove = targetOfLastMove || originOfLastMove;
+    const color = rowStartColor ? "light-square" : "dark-square";
+
     let involvedInLastMoveClassName = involvedInLastMove
         ? " involved-in-last-move-tile-" + color
         : "";
 
     //concatenates class and id names
     const tileClasses =
-        `${color}` +
-        `${selectable}` +
-        `${involvedInLastMoveClassName}` +
-        " tile";
+        `${selectable}` + `${involvedInLastMoveClassName}` + " tile";
 
     //drag and drop configuration
     const [, drop] = useDrop({
@@ -79,6 +77,33 @@ function Tile(props) {
         drop: (item) => {
             const [fromPosition] = item.id.split("_");
             props.onMove(boardConfig, item.id, fromPosition, chessCoordsConcat);
+
+            //remove highlight
+            for (let col = 0; col < 8; col++) {
+                for (let row = 0; row < 8; row++) {
+                    const tile = convertNotation([col, row]).join("");
+                    const tileElement = document.querySelector(`#${tile}`);
+                    tileElement.classList.remove("moveable");
+                    tileElement.classList.remove("moveable-capturable");
+                    tileElement.classList.remove(
+                        "moveable-capturable-light-square",
+                    );
+                    tileElement.classList.remove(
+                        "moveable-capturable-dark-square",
+                    );
+                    tileElement.parentNode.classList.remove(
+                        "moveable-capturable-parent",
+                    );
+
+                    if (
+                        tileElement.firstChild.src ===
+                        "http://localhost:9000/images/validMoveDot.png"
+                    ) {
+                        tileElement.firstChild.src =
+                            "http://localhost:9000/images/placeholder.png";
+                    }
+                }
+            }
         },
     });
 

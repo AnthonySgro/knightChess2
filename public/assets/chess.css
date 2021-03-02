@@ -53,7 +53,65 @@ img {
     display: flex;
 }
 
+/*  */
+
+/* board square colors */
+
+.dark-square {
+    background-color: #118ab2;
+}
+
+.light-square {
+    background-color: #fffff0;
+}
+
+/*  */
+
+/* .default-filter {
+    background-color: #57e7ec;
+    opacity: 1;
+} */
+
+/* .involved-in-last-move-filter {
+    background-color: #dfbd6f;
+    opacity: 1;
+} */
+
+/* .involved-in-last-move-tile-light-square {
+    background-color: #e6dac1;
+    opacity: 1;
+}
+
+.involved-in-last-move-tile-dark-square {
+    background-color: #bdaa86;
+    opacity: 1;
+} */
+
+.dragged-over {
+    background-color: #11906e94;
+}
+
+.moveable {
+    border-radius: 5rem;
+    transform: scale(0.4, 0.4);
+    background-color: rgba(6, 214, 158, 0.396);
+}
+
+.moveable-capturable-light-square {
+    border-radius: 5rem;
+    background-color: #fffff0;
+}
+.moveable-capturable-dark-square {
+    border-radius: 5rem;
+    background-color: #118ab2;
+}
+
+.moveable-capturable-parent {
+    background-color: rgba(6, 214, 158, 0.396);
+}
+
 /* rounding those edges! */
+
 #a8,
 #a8-filter {
     border-top-left-radius: 0.4rem;
@@ -72,42 +130,4 @@ img {
 #h1,
 #h1-filter {
     border-bottom-right-radius: 0.4rem;
-}
-
-/*  */
-
-/* board square colors */
-
-.dark-square {
-    background-color: #118ab2;
-}
-
-.light-square {
-    background-color: #fffff0;
-}
-
-/*  */
-
-.default-filter {
-    background-color: #57e7ec;
-    opacity: 1;
-}
-
-/* .involved-in-last-move-filter {
-    background-color: #dfbd6f;
-    opacity: 1;
-} */
-
-.involved-in-last-move-tile-light-square {
-    background-color: #e6dac1;
-    opacity: 1;
-}
-
-.involved-in-last-move-tile-dark-square {
-    background-color: #bdaa86;
-    opacity: 1;
-}
-
-.dragged-over {
-    opacity: 0.3;
 }

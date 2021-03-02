@@ -5,7 +5,12 @@ import adjacentTile from "./adjacentTile";
 import { cloneDeep, isEmpty } from "lodash";
 import continuousPieceMovement from "./continuousPieceMovement";
 import isEmptyTile from "./isEmptyTile";
-import Pawn from "../pieces/pawn.jsx";
+import { Pawn, King } from "../pieces/allPieceExport.jsx";
+import knightLogic from "./basicMoveLogic/knightLogic";
+import bishopLogic from "./basicMoveLogic/bishopLogic";
+import rookLogic from "./basicMoveLogic/rookLogic";
+import queenLogic from "./basicMoveLogic/queenLogic";
+import pawnLogic from "./basicMoveLogic/pawnLogic";
 
 //returns an object that tells us information about the turn
 function chess(target, origin, piece, boardConfig, checkDetection) {
@@ -34,269 +39,27 @@ function chess(target, origin, piece, boardConfig, checkDetection) {
     //get basic piece movemenets
     switch (pieceType) {
         case "Pawn":
-            const tileAhead = adjacentTile(origin, "up", 1, piece.color);
-            const twoTilesAhead = adjacentTile(origin, "up", 2, piece.color);
-            const lAttack = adjacentTile(origin, "up-left", 1, piece.color);
-            const rAttack = adjacentTile(origin, "up-right", 1, piece.color);
-            switch (target) {
-                //moving up one
-                case tileAhead:
-                    //see if a piece is present at the tile
-                    validMove = isEmptyTile(target, boardConfig);
-                    break;
-                //moving up two (first move only)
-                case twoTilesAhead:
-                    //see if a piece is present at the tile
-                    const targetEmpty = isEmptyTile(twoTilesAhead, boardConfig);
-
-                    //also have to check if there's a piece present on the first square
-                    const nextTileEmpty = isEmptyTile(tileAhead, boardConfig);
-
-                    //if both are empty, and pawn hasn't moved yet
-                    if (
-                        targetEmpty &&
-                        nextTileEmpty &&
-                        piece.moveTwoAvailable
-                    ) {
-                        pawnMovedTwo = true;
-                        validMove = true;
-                    }
-
-                    break;
-                //attacking
-                case lAttack:
-                    //if we are capturing an opponent's piece
-                    if (capturingOppPiece) {
-                        validMove = true;
-                        //if we aren't, it could be enpassant
-                    } else if (!capturingPiece) {
-                        //find enPassant square
-                        const enPassantSquare = adjacentTile(
-                            lAttack,
-                            "down",
-                            1,
-                            piece.color,
-                        );
-
-                        //if theres a piece
-                        if (!isEmptyTile(enPassantSquare, boardConfig)) {
-                            //is it a pawn?
-                            const passantPiece = getPieceWithCoords(
-                                enPassantSquare,
-                                boardConfig,
-                            );
-
-                            if (passantPiece instanceof Pawn) {
-                                //is it vulnerable to en passant?
-                                if (passantPiece.vulnerableToEnPassant) {
-                                    validMove = true;
-                                    enPassantEvent = true;
-                                }
-                            }
-                        }
-                    }
-                    break;
-                case rAttack:
-                    //if we are capturing an opponent's piece
-                    if (capturingOppPiece) {
-                        validMove = true;
-                    } else if (!capturingPiece) {
-                        //find enPassant square
-                        const enPassantSquare = adjacentTile(
-                            rAttack,
-                            "down",
-                            1,
-                            piece.color,
-                        );
-
-                        //if theres a piece
-                        if (!isEmptyTile(enPassantSquare, boardConfig)) {
-                            //is it a pawn?
-                            const passantPiece = getPieceWithCoords(
-                                enPassantSquare,
-                                boardConfig,
-                            );
-
-                            if (passantPiece instanceof Pawn) {
-                                //is it vulnerable to en passant?
-                                if (passantPiece.vulnerableToEnPassant) {
-                                    validMove = true;
-                                    enPassantEvent = true;
-                                }
-                            }
-                        }
-                    }
-
-                    //if en passant
-
-                    break;
-            }
-
-            //after a pawn moves, it loses ability to move two squares
-            if (validMove === true) {
-                piece.moveTwoAvailable = false;
-            }
-
+            const pawnMoveObject = pawnLogic(
+                target,
+                origin,
+                piece,
+                boardConfig,
+            );
+            validMove = pawnMoveObject.validMove;
+            pawnMovedTwo = pawnMoveObject.pawnMovedTwo;
+            enPassantEvent = pawnMoveObject.enPassantEvent;
             break;
         case "Knight":
-            //finds two steps in each direction to prepare for all knight moves
-            const prelimUp = adjacentTile(origin, "up", 2, piece.color);
-            const prelimRight = adjacentTile(origin, "right", 2, piece.color);
-            const prelimDown = adjacentTile(origin, "down", 2, piece.color);
-            const prelimLeft = adjacentTile(origin, "left", 2, piece.color);
-
-            //knight moves
-            switch (target) {
-                case adjacentTile(prelimUp, "right", 1, piece.color):
-                    validMove = true;
-                    break;
-                case adjacentTile(prelimUp, "left", 1, piece.color):
-                    validMove = true;
-                    break;
-                case adjacentTile(prelimRight, "up", 1, piece.color):
-                    validMove = true;
-                    break;
-                case adjacentTile(prelimRight, "down", 1, piece.color):
-                    validMove = true;
-                    break;
-                case adjacentTile(prelimDown, "right", 1, piece.color):
-                    validMove = true;
-                    break;
-                case adjacentTile(prelimDown, "left", 1, piece.color):
-                    validMove = true;
-                    break;
-                case adjacentTile(prelimLeft, "up", 1, piece.color):
-                    validMove = true;
-                    break;
-                case adjacentTile(prelimLeft, "down", 1, piece.color):
-                    validMove = true;
-                    break;
-            }
-
-            //if we are capturing our own piece, not a valid move
-            if (capturingPiece && !capturingOppPiece) {
-                validMove = false;
-            }
+            validMove = knightLogic(target, origin, piece, boardConfig);
             break;
         case "Bishop":
-            //we are going to find the direction by making one true
-            let bishopDirection = "";
-
-            //find what direction we are going in
-            for (let i = 1; i <= 8; i++) {
-                switch (target) {
-                    case adjacentTile(origin, "down-left", i, piece.color):
-                        bishopDirection = "down-left";
-                        break;
-                    case adjacentTile(origin, "up-right", i, piece.color):
-                        bishopDirection = "up-right";
-                        break;
-                    case adjacentTile(origin, "down-right", i, piece.color):
-                        bishopDirection = "down-right";
-                        break;
-                    case adjacentTile(origin, "up-left", i, piece.color):
-                        bishopDirection = "up-left";
-                        break;
-                }
-            }
-
-            //use function to return valid moves in any direction
-            let validBishopMoves = continuousPieceMovement(
-                origin,
-                bishopDirection,
-                piece,
-                boardConfig,
-            );
-
-            //if valid move...
-            if (validBishopMoves.includes(target)) {
-                validMove = true;
-            }
-
+            validMove = bishopLogic(target, origin, piece, boardConfig);
             break;
         case "Rook":
-            //we are going to find the direction by making one true
-            let rookDirection = "";
-
-            //find what direction we are going in
-            for (let i = 1; i <= 8; i++) {
-                switch (target) {
-                    case adjacentTile(origin, "up", i, piece.color):
-                        rookDirection = "up";
-                        break;
-                    case adjacentTile(origin, "down", i, piece.color):
-                        rookDirection = "down";
-                        break;
-                    case adjacentTile(origin, "left", i, piece.color):
-                        rookDirection = "left";
-                        break;
-                    case adjacentTile(origin, "right", i, piece.color):
-                        rookDirection = "right";
-                        break;
-                }
-            }
-
-            //use function to return valid moves in any direction
-            let validRookMoves = continuousPieceMovement(
-                origin,
-                rookDirection,
-                piece,
-                boardConfig,
-            );
-
-            //if valid move...
-            if (validRookMoves.includes(target)) {
-                piece.hasMoved = true;
-                validMove = true;
-            }
+            validMove = rookLogic(target, origin, piece, boardConfig);
             break;
         case "Queen":
-            //we are going to find the direction by making one true
-            let queenDirection = "";
-
-            //find what direction we are going in
-            for (let i = 1; i <= 8; i++) {
-                switch (target) {
-                    case adjacentTile(origin, "up", i, piece.color):
-                        queenDirection = "up";
-                        break;
-                    case adjacentTile(origin, "down", i, piece.color):
-                        queenDirection = "down";
-                        break;
-                    case adjacentTile(origin, "left", i, piece.color):
-                        queenDirection = "left";
-                        break;
-                    case adjacentTile(origin, "right", i, piece.color):
-                        queenDirection = "right";
-                        break;
-                    case adjacentTile(origin, "up-right", i, piece.color):
-                        queenDirection = "up-right";
-                        break;
-                    case adjacentTile(origin, "down-right", i, piece.color):
-                        queenDirection = "down-right";
-                        break;
-                    case adjacentTile(origin, "down-left", i, piece.color):
-                        queenDirection = "down-left";
-                        break;
-                    case adjacentTile(origin, "up-left", i, piece.color):
-                        queenDirection = "up-left";
-                        break;
-                }
-            }
-
-            //use function to return valid moves in any direction
-            let validQueenMoves = continuousPieceMovement(
-                origin,
-                queenDirection,
-                piece,
-                boardConfig,
-            );
-
-            //if valid move...
-            if (validQueenMoves.includes(target)) {
-                validMove = true;
-            }
-
+            validMove = queenLogic(target, origin, piece, boardConfig);
             break;
         case "King":
             //normal move detection (1 in every direction)
@@ -344,88 +107,103 @@ function chess(target, origin, piece, boardConfig, checkDetection) {
                 direction.push("right");
             }
 
-            //castling detection
-            switch (target) {
-                //short castle
-                case adjacentTile(origin, direction[0], 2, piece.color):
-                    let shortCastSquares = [];
-                    let shortSquareStatus = [];
-                    for (let i = 1; i < 4; i++) {
-                        shortCastSquares.push(
-                            adjacentTile(origin, direction[0], i, piece.color),
+            //only search here if castling is available still (otherwise it won't work)
+            if (piece.castlingAvailable) {
+                //castling detection
+                switch (target) {
+                    //short castle
+                    case adjacentTile(origin, direction[0], 2, piece.color):
+                        let shortCastSquares = [];
+                        let shortSquareStatus = [];
+                        for (let i = 1; i < 4; i++) {
+                            shortCastSquares.push(
+                                adjacentTile(
+                                    origin,
+                                    direction[0],
+                                    i,
+                                    piece.color,
+                                ),
+                            );
+                            shortSquareStatus.push(
+                                isEmptyTile(
+                                    shortCastSquares[i - 1],
+                                    boardConfig,
+                                ),
+                            );
+                        }
+
+                        const shortSquarePiece = getPieceWithCoords(
+                            shortCastSquares[2],
+                            boardConfig,
                         );
-                        shortSquareStatus.push(
-                            isEmptyTile(shortCastSquares[i - 1], boardConfig),
+
+                        //if the squares next to the king are empty, and there's a rook that hasn't moved
+                        if (
+                            shortSquareStatus[0] &&
+                            shortSquareStatus[1] &&
+                            shortSquarePiece.name === "Rook" &&
+                            shortSquarePiece.hasMoved === false
+                        ) {
+                            validMove = true;
+                            castleEvent.castleMove = true;
+                            castleEvent.rookInvolved = shortSquarePiece;
+                            castleEvent.squaresInvolved = [
+                                origin,
+                                shortCastSquares[0],
+                                shortCastSquares[1],
+                            ];
+
+                            castleEvent.type = "short";
+                            castleEvent.direction = direction[0];
+                        }
+                        break;
+
+                    case adjacentTile(origin, direction[1], 2, piece.color):
+                        let longCastSquares = [];
+                        let longSquareStatus = [];
+                        for (let i = 1; i < 5; i++) {
+                            longCastSquares.push(
+                                adjacentTile(
+                                    origin,
+                                    direction[1],
+                                    i,
+                                    piece.color,
+                                ),
+                            );
+                            longSquareStatus.push(
+                                isEmptyTile(
+                                    longCastSquares[i - 1],
+                                    boardConfig,
+                                ),
+                            );
+                        }
+
+                        const longSquarePiece = getPieceWithCoords(
+                            longCastSquares[3],
+                            boardConfig,
                         );
-                    }
 
-                    const shortSquarePiece = getPieceWithCoords(
-                        shortCastSquares[2],
-                        boardConfig,
-                    );
-
-                    //if the squares next to the king are empty, and there's a rook that hasn't moved
-                    if (
-                        shortSquareStatus[0] &&
-                        shortSquareStatus[1] &&
-                        shortSquarePiece.name === "Rook" &&
-                        shortSquarePiece.hasMoved === false
-                    ) {
-                        validMove = true;
-                        castleEvent.castleMove = true;
-                        castleEvent.rookInvolved = shortSquarePiece;
-                        castleEvent.squaresInvolved = [
-                            origin,
-                            shortCastSquares[0],
-                            shortCastSquares[1],
-                        ];
-
-                        castleEvent.type = "short";
-                        castleEvent.direction = direction[0];
-                    }
-                    break;
-
-                case adjacentTile(origin, direction[1], 2, piece.color):
-                    let longCastSquares = [];
-                    let longSquareStatus = [];
-                    for (let i = 1; i < 5; i++) {
-                        longCastSquares.push(
-                            adjacentTile(origin, direction[1], i, piece.color),
-                        );
-                        longSquareStatus.push(
-                            isEmptyTile(longCastSquares[i - 1], boardConfig),
-                        );
-                    }
-
-                    const longSquarePiece = getPieceWithCoords(
-                        longCastSquares[3],
-                        boardConfig,
-                    );
-
-                    //if the squares next to the king are empty, and there's a rook that hasn't moved
-                    if (
-                        longSquareStatus[0] &&
-                        longSquareStatus[1] &&
-                        longSquareStatus[2] &&
-                        longSquarePiece.name === "Rook" &&
-                        longSquarePiece.hasMoved === false
-                    ) {
-                        validMove = true;
-                        castleEvent.castleMove = true;
-                        castleEvent.rookInvolved = longSquarePiece;
-                        castleEvent.squaresInvolved = [
-                            origin,
-                            longCastSquares[0],
-                            longCastSquares[1],
-                        ];
-                        castleEvent.type = "long";
-                        castleEvent.direction = direction[1];
-                    }
-                    break;
-            }
-
-            if (validMove === true) {
-                piece.castlingAvailable = false;
+                        //if the squares next to the king are empty, and there's a rook that hasn't moved
+                        if (
+                            longSquareStatus[0] &&
+                            longSquareStatus[1] &&
+                            longSquareStatus[2] &&
+                            longSquarePiece.name === "Rook" &&
+                            longSquarePiece.hasMoved === false
+                        ) {
+                            validMove = true;
+                            castleEvent.castleMove = true;
+                            castleEvent.rookInvolved = longSquarePiece;
+                            castleEvent.squaresInvolved = [
+                                origin,
+                                longCastSquares[0],
+                                longCastSquares[1],
+                            ];
+                            castleEvent.type = "long";
+                            castleEvent.direction = direction[1];
+                        }
+                        break;
+                }
             }
 
             break;
@@ -501,7 +279,11 @@ function chess(target, origin, piece, boardConfig, checkDetection) {
 
         //enPassant updater
         if (enPassantEvent) {
-            simulBoardConfig[toCoord[0] + 1][toCoord[1]] = {};
+            if (piece.white) {
+                simulBoardConfig[toCoord[0] + 1][toCoord[1]] = {};
+            } else {
+                simulBoardConfig[toCoord[0] - 1][toCoord[1]] = {};
+            }
         }
 
         //updates all piece collections
@@ -598,6 +380,7 @@ function chess(target, origin, piece, boardConfig, checkDetection) {
                         }
                     }
 
+                    //if king will be in check, it isnt a valid move
                     if (result.validMove) {
                         validMove = false;
                     }
@@ -614,6 +397,7 @@ function chess(target, origin, piece, boardConfig, checkDetection) {
         allPieces: allPieces,
         whitePieces: whitePieces,
         blackPieces: blackPieces,
+        pawnMoveTwo: pawnMovedTwo,
     };
 }
 
