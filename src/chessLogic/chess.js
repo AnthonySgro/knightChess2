@@ -10,7 +10,14 @@ import isEmptyTile from "./isEmptyTile";
 function chess(target, origin, piece, boardConfig, checkDetection) {
     const pieceType = piece.name;
     let validMove = false;
-    let allValidMoves = [];
+
+    let castleEvent = {
+        castleMove: false,
+        rookInvolved: {},
+        squaresInvolved: [],
+        type: "",
+        direction: "",
+    };
 
     //gets attacked piece info
     const attackedPiece = getPieceWithCoords(target, boardConfig);
@@ -182,6 +189,7 @@ function chess(target, origin, piece, boardConfig, checkDetection) {
 
             //if valid move...
             if (validRookMoves.includes(target)) {
+                piece.hasMoved = true;
                 validMove = true;
             }
             break;
@@ -234,7 +242,7 @@ function chess(target, origin, piece, boardConfig, checkDetection) {
 
             break;
         case "King":
-            //if target is one square away, and either empty or an enemy piece
+            //normal move detection (1 in every direction)
             switch (target) {
                 case adjacentTile(origin, "up", 1, piece.color):
                     validMove =
@@ -265,8 +273,102 @@ function chess(target, origin, piece, boardConfig, checkDetection) {
                         isEmptyTile(target, boardConfig) || capturingOppPiece;
                     break;
                 case adjacentTile(origin, "up-left", 1, piece.color):
-                    validMove = isEmptyTile(target, boardConfig);
+                    validMove =
+                        isEmptyTile(target, boardConfig) || capturingOppPiece;
                     break;
+            }
+
+            let direction = [];
+            if (piece.white) {
+                direction.push("right");
+                direction.push("left");
+            } else {
+                direction.push("left");
+                direction.push("right");
+            }
+
+            //castling detection
+            switch (target) {
+                //short castle
+                case adjacentTile(origin, direction[0], 2, piece.color):
+                    let shortCastSquares = [];
+                    let shortSquareStatus = [];
+                    for (let i = 1; i < 4; i++) {
+                        shortCastSquares.push(
+                            adjacentTile(origin, direction[0], i, piece.color),
+                        );
+                        shortSquareStatus.push(
+                            isEmptyTile(shortCastSquares[i - 1], boardConfig),
+                        );
+                    }
+
+                    const shortSquarePiece = getPieceWithCoords(
+                        shortCastSquares[2],
+                        boardConfig,
+                    );
+
+                    //if the squares next to the king are empty, and there's a rook that hasn't moved
+                    if (
+                        shortSquareStatus[0] &&
+                        shortSquareStatus[1] &&
+                        shortSquarePiece.name === "Rook" &&
+                        shortSquarePiece.hasMoved === false
+                    ) {
+                        validMove = true;
+                        castleEvent.castleMove = true;
+                        castleEvent.rookInvolved = shortSquarePiece;
+                        castleEvent.squaresInvolved = [
+                            origin,
+                            shortCastSquares[0],
+                            shortCastSquares[1],
+                        ];
+
+                        castleEvent.type = "short";
+                        castleEvent.direction = direction[0];
+                    }
+                    break;
+
+                case adjacentTile(origin, direction[1], 2, piece.color):
+                    let longCastSquares = [];
+                    let longSquareStatus = [];
+                    for (let i = 1; i < 5; i++) {
+                        longCastSquares.push(
+                            adjacentTile(origin, direction[1], i, piece.color),
+                        );
+                        longSquareStatus.push(
+                            isEmptyTile(longCastSquares[i - 1], boardConfig),
+                        );
+                    }
+
+                    const longSquarePiece = getPieceWithCoords(
+                        longCastSquares[3],
+                        boardConfig,
+                    );
+
+                    //if the squares next to the king are empty, and there's a rook that hasn't moved
+                    if (
+                        longSquareStatus[0] &&
+                        longSquareStatus[1] &&
+                        longSquareStatus[2] &&
+                        longSquarePiece.name === "Rook" &&
+                        longSquarePiece.hasMoved === false
+                    ) {
+                        validMove = true;
+                        castleEvent.castleMove = true;
+                        castleEvent.rookInvolved = longSquarePiece;
+                        castleEvent.squaresInvolved = [
+                            origin,
+                            longCastSquares[0],
+                            longCastSquares[1],
+                        ];
+                        castleEvent.type = "long";
+                        castleEvent.direction = direction[1];
+                    }
+                    break;
+            }
+
+            if (validMove === true) {
+                piece.castlingAvailable = false;
             }
 
             break;
@@ -277,6 +379,8 @@ function chess(target, origin, piece, boardConfig, checkDetection) {
         return { validMove: validMove };
     }
 
+    let simulBoardConfig;
+
     //simulate move to ensure king is not in check
     if (validMove && checkDetection) {
         //get my coordinates prepped to work with the history object
@@ -286,11 +390,48 @@ function chess(target, origin, piece, boardConfig, checkDetection) {
         const frCoord = boardStateConverter(frNumCoords);
 
         //deep copy of the board configuration so we don't alter state
-        let simulBoardConfig = cloneDeep(boardConfig);
+        simulBoardConfig = cloneDeep(boardConfig);
 
         //perform move on simulated board
         simulBoardConfig[frCoord[0]][frCoord[1]] = {};
         simulBoardConfig[toCoord[0]][toCoord[1]] = piece;
+
+        //castling handler
+        if (castleEvent.castleMove) {
+            const rook = castleEvent.rookInvolved;
+            const type = castleEvent.type;
+            const direction = castleEvent.direction;
+
+            //we have to change the rook position as well
+            if (direction === "right" && type === "short") {
+                simulBoardConfig[toCoord[0]][toCoord[1] - 1] = rook;
+                simulBoardConfig[toCoord[0]][toCoord[1] + 1] = {};
+                rook.numberCoords = [toNumCoords[0] - 1, toNumCoords[1]];
+            } else if (direction === "left" && type === "short") {
+                simulBoardConfig[toCoord[0]][toCoord[1] - 1] = rook;
+                simulBoardConfig[toCoord[0]][toCoord[1] + 1] = {};
+                rook.numberCoords = [toNumCoords[0] - 1, toNumCoords[1]];
+            } else if (direction === "right" && type === "long") {
+                simulBoardConfig[toCoord[0]][toCoord[1] + 1] = rook;
+                simulBoardConfig[toCoord[0]][toCoord[1] - 2] = {};
+                rook.numberCoords = [toNumCoords[0] + 1, toNumCoords[1]];
+            } else if (direction === "left" && type === "long") {
+                simulBoardConfig[toCoord[0]][toCoord[1] + 1] = rook;
+                simulBoardConfig[toCoord[0]][toCoord[1] - 2] = {};
+                rook.numberCoords = [toNumCoords[0] + 1, toNumCoords[1]];
+            }
+
+            //update rook info
+            rook.chessCoords = convertNotation(rook.numberCoords);
+            rook.flatChessCoords = `${rook.chessCoords[0]}${rook.chessCoords[1]}`;
+            rook.id = `${
+                rook.flatChessCoords +
+                "_" +
+                rook.char.toUpperCase() +
+                "_" +
+                rook.color
+            }`;
+        }
 
         //updates all piece collections
         let allPieces = [];
@@ -324,7 +465,7 @@ function chess(target, origin, piece, boardConfig, checkDetection) {
             }
         }
 
-        //if we moved the king, we have to udpate it's position
+        //if we moved the king, we have to update its position
         if (piece === thisKing) {
             thisKing.updatePositionState(convertNotation(target));
         }
@@ -340,7 +481,6 @@ function chess(target, origin, piece, boardConfig, checkDetection) {
                     cycleTilePiece.color !== piece.color
                 ) {
                     //check to see if it is is a valid move to attack our king
-
                     const result = chess(
                         thisKing.flatChessCoords,
                         cycleTilePiece.flatChessCoords,
@@ -348,6 +488,40 @@ function chess(target, origin, piece, boardConfig, checkDetection) {
                         simulBoardConfig,
                         false,
                     );
+
+                    let castleChecker1;
+                    let castleChecker2;
+
+                    const { squaresInvolved, castleMove } = castleEvent;
+                    //if castling, we have to check more than just the king's position
+                    if (castleMove) {
+                        console.log(squaresInvolved);
+
+                        //makes sure you don't castle through or out of check
+                        castleChecker1 = chess(
+                            squaresInvolved[0],
+                            cycleTilePiece.flatChessCoords,
+                            cycleTilePiece,
+                            simulBoardConfig,
+                            false,
+                        );
+
+                        castleChecker2 = chess(
+                            squaresInvolved[1],
+                            cycleTilePiece.flatChessCoords,
+                            cycleTilePiece,
+                            simulBoardConfig,
+                            false,
+                        );
+
+                        //takes away castling if you are going through a check
+                        if (
+                            castleChecker1.validMove ||
+                            castleChecker2.validMove
+                        ) {
+                            validMove = false;
+                        }
+                    }
 
                     if (result.validMove) {
                         validMove = false;
@@ -357,7 +531,11 @@ function chess(target, origin, piece, boardConfig, checkDetection) {
         }
     }
 
-    return { validMove: validMove };
+    return {
+        validMove: validMove,
+        finalBoardConfig: simulBoardConfig,
+        castleEvent: castleEvent,
+    };
 }
 
 export default chess;

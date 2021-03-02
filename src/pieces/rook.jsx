@@ -5,6 +5,7 @@ class Rook extends Piece {
         super(props, char);
         this.name = "Rook";
         this.attackingSquares = [];
+        this.hasMoved = false;
     }
 }
 

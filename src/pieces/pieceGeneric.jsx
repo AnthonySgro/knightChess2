@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 import imageSelector from "../helper-functions/imageSelector";
-import notationConverter from "../helper-functions/notationConverter";
+import convertNotation from "../helper-functions/notationConverter";
 
 class Piece {
     constructor(chessBoardProps, char) {
@@ -13,7 +13,7 @@ class Piece {
 
         //coordinate info
         this.numberCoords = ["", ""];
-        this.chessCoords = notationConverter(this.numberCoords);
+        this.chessCoords = convertNotation(this.numberCoords);
         this.flatChessCoords = "";
 
         //image info
@@ -29,7 +29,7 @@ class Piece {
     //updates coordinates and id
     updatePositionState(newNumCoords) {
         this.numberCoords = newNumCoords;
-        this.chessCoords = notationConverter(newNumCoords);
+        this.chessCoords = convertNotation(newNumCoords);
         this.flatChessCoords = `${this.chessCoords[0]}${this.chessCoords[1]}`;
         this.id = `${
             this.flatChessCoords +

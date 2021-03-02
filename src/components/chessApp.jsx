@@ -9,7 +9,10 @@ import boardStateConverter from "../helper-functions/boardStateConverter";
 import { cloneDeep, isEmpty } from "lodash";
 import { playMoveSound, playCaptureSound } from "../helper-functions/sounds";
 import chess from "../chessLogic/chess";
-import { getPieceWithDom } from "../helper-functions/getPieceWithDom";
+import {
+    getPieceWithDom,
+    getPieceWithCoords,
+} from "../helper-functions/getPieceWithDom";
 
 //ChessApp Component renders entire application
 class ChessApp extends Component {
@@ -145,6 +148,8 @@ class ChessApp extends Component {
 
         //returns an object containing information about the move result
         const result = chess(to, from, movedPiece, oldBoardConfig, true);
+
+        //if invalid move, do not proceed
         if (!result.validMove) {
             return;
         }
@@ -164,18 +169,17 @@ class ChessApp extends Component {
         //stores the squares involved in last move for a moment
         this.lastMoveSquares = [from, to];
 
-        //get my coordinates prepped to work with the history object
-        const toNumCoords = convertNotation([to[0], to[1]]);
-        const toCoord = boardStateConverter(toNumCoords);
-        const frNumCoords = convertNotation([from[0], from[1]]);
-        const frCoord = boardStateConverter(frNumCoords);
+        //snag our board configuration returned by chess.js
+        let boardConfig = result.finalBoardConfig;
 
-        //deep copy of the board configuration so we don't alter state
-        let boardConfig = cloneDeep(oldBoardConfig);
+        const {
+            castleMove,
+            direction,
+            type,
+            rookInvolved,
+        } = result.castleEvent;
 
-        //perform move
-        boardConfig[frCoord[0]][frCoord[1]] = {};
-        boardConfig[toCoord[0]][toCoord[1]] = movedPiece;
+        //increment move
         const newStepNumber = this.state.stepNumber + 1;
 
         //get reference to current state

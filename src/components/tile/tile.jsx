@@ -45,7 +45,7 @@ function Tile(props) {
     //if piece, sets piece coordinates to this tile
     if (piecePresent) {
         piece = tileConfig;
-        //piece.updatePositionState(this.numberCoords);
+        piece.updatePositionState(numberCoords);
     }
 
     //get image file from piece

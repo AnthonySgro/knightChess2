@@ -71,7 +71,7 @@ function adjacentTile(from, direction, length, color) {
             resultCoords = [frCoords[0], frCoords[1] - 1 * length];
             break;
         case "down-left":
-            resultCoords = [frCoords[0], frCoords[1] - 1 * length];
+            resultCoords = [frCoords[0] - 1 * length, frCoords[1] - 1 * length];
             break;
         case "left":
             resultCoords = [frCoords[0] - 1 * length, frCoords[1]];
