@@ -5,8 +5,8 @@ import { Pawn, Rook, Knight, Bishop, Queen, King } from "../pieces/allPieceExpor
 import Chessboard from "./chessboard/chessboard.jsx";
 import UserInterface from "./ui/userInterface.jsx";
 import convertNotation from "../helper-functions/notationConverter";
-import boardStateConverter from "../helper-functions/boardStateConverter";
-import { cloneDeep, isEmpty } from "lodash";
+import positionValidator from "../chessLogic/positionValidator";
+import { cloneDeep, isEmpty, some } from "lodash";
 import { playMoveSound, playCaptureSound } from "../helper-functions/sounds";
 import chess from "../chessLogic/chess";
 import {
@@ -14,6 +14,7 @@ import {
     getPieceWithCoords,
 } from "../helper-functions/getPieceWithDom";
 import checkFiltering from "../chessLogic/checkFiltering.js";
+import boardStateConverter from "../helper-functions/boardStateConverter.js";
 
 //ChessApp Component renders entire application
 class ChessApp extends Component {
@@ -39,7 +40,7 @@ class ChessApp extends Component {
             ],
             //initializes game to move 0 and white-to-move
             stepNumber: 0,
-            whiteIsNext: true,
+            whiteIsNext: false,
         };
 
         //dragging props
@@ -99,7 +100,7 @@ class ChessApp extends Component {
         //prettier-ignore
         const blackCollection = [r1,n1,b1,q1,k1,b2,n2,r2,p1,p2,p3,p4,p5,p6,p7,p8];
 
-        //initial board configuration
+        //initial board configuration, edit to experiment with positions
         const boardConfig = [
             [r1, n1, b1, q1, k1, b2, n2, r2],
             [p1, p2, p3, p4, p5, p6, p7, p8],
@@ -109,6 +110,17 @@ class ChessApp extends Component {
             [{}, {}, {}, {}, {}, {}, {}, {}],
             [P1, P2, P3, P4, P5, P6, P7, P8],
             [R1, N1, B1, Q1, K1, B2, N2, R2],
+        ];
+
+        const boardConfig1 = [
+            [{}, {}, {}, {}, k1, {}, {}, {}],
+            [{}, {}, {}, {}, {}, {}, {}, {}],
+            [{}, {}, {}, {}, {}, {}, {}, {}],
+            [{}, {}, {}, {}, {}, {}, {}, {}],
+            [{}, {}, {}, {}, {}, {}, {}, {}],
+            [{}, {}, {}, {}, {}, {}, {}, {}],
+            [{}, {}, {}, r1, {}, {}, {}, {}],
+            [{}, {}, {}, {}, K1, {}, {}, {}],
         ];
 
         this.whitePieces = whiteCollection;
@@ -166,15 +178,60 @@ class ChessApp extends Component {
             basicResult,
         );
 
+        //if invalid move, do not proceed
         if (!finalResult.validMove) {
             return;
         }
 
         //**everything after only happens if it is a valid move**
 
+        //get references to all pieces
+        for (let col = 0; col < 8; col++) {
+            for (let row = 0; row < 8; row++) {
+                const piece = finalResult.finalBoardConfig[col][row];
+                if (!isEmpty(piece)) {
+                    //every move, every piece is no longer vulnerable to enpassant
+                    if (piece.name === "Pawn") {
+                        piece.vulnerableToEnPassant = false;
+                    }
+                }
+            }
+        }
+
+        //restrict one-time moves
+        if (movedPiece.name === "King") {
+            movedPiece.castlingAvailable = false;
+        } else if (movedPiece.name === "Pawn") {
+            movedPiece.moveTwoAvailable = false;
+        }
+
+        //pawn move two tiles handler
+        if (finalResult.pawnMovedTwo) {
+            movedPiece.vulnerableToEnPassant = true;
+        }
+
+        //get the new board
+        let newBoardConfiguration = finalResult.finalBoardConfig;
+
+        // const toBoard = boardStateConverter(convertNotation(from));
+        // const otherWayPiece = oldBoardConfig[toBoard[0]][toBoard[1]];
+        // console.log(otherWayPiece);
+        // if (to !== movedPiece.flatChessCoords) {
+        //     const someChessCoords = convertNotation(to);
+        //     movedPiece.chessCoords = convertNotation(someChessCoords);
+        //     movedPiece.flatChessCoords = `${movedPiece.chessCoords[0]}${movedPiece.chessCoords[1]}`;
+        //     movedPiece.id = `${
+        //         movedPiece.flatChessCoords +
+        //         "_" +
+        //         movedPiece.char.toUpperCase() +
+        //         "_" +
+        //         movedPiece.color
+        //     }`;
+        // }
+
+        //sounds
         const placeholder = "http://localhost:9000/images/placeholder.png";
         const validDot = "http://localhost:9000/images/validMoveDot.png";
-        //play sound
         const imageFileOfTarget = targetTile.firstChild.src;
         if (
             imageFileOfTarget === placeholder ||
@@ -185,24 +242,11 @@ class ChessApp extends Component {
             playCaptureSound();
         }
 
-        // pawn and king have special moves we must take away if they moved
-        this.allPieces.forEach((somePiece) => {
-            if (somePiece === movedPiece) {
-                //if you move a pawn, loses two step move
-                if (movedPiece instanceof Pawn) {
-                    somePiece.moveTwoAvailable = false;
-                    //if you move a king, loses castling rights
-                } else if (movedPiece instanceof King) {
-                    somePiece.castlingAvailable = false;
-                }
-            }
-        });
-
         //stores the squares involved in last move for a moment
         this.lastMoveSquares = [from, to];
 
         //snag our board configuration returned by chess.js
-        let boardConfig = finalResult.finalBoardConfig;
+        let boardConfig = newBoardConfiguration;
 
         //increment move
         const newStepNumber = this.state.stepNumber + 1;
@@ -223,32 +267,57 @@ class ChessApp extends Component {
     dragStartHandler(e, piece) {
         this.draggingPieceMoveable = [];
         this.draggingPiece = piece;
-        if (isEmpty(piece)) {
+        if (isEmpty(piece) || piece === undefined) {
             return;
         }
+        let someChessCoords;
+        if (e.target.parentNode.id !== this.draggingPiece.flatChessCoords) {
+            someChessCoords = convertNotation(e.target.parentNode.id);
+            this.draggingPiece.chessCoords = convertNotation(someChessCoords);
+            this.draggingPiece.flatChessCoords = `${this.draggingPiece.chessCoords[0]}${this.draggingPiece.chessCoords[1]}`;
+            this.draggingPiece.id = `${
+                this.draggingPiece.flatChessCoords +
+                "_" +
+                this.draggingPiece.char.toUpperCase() +
+                "_" +
+                this.draggingPiece.color
+            }`;
+        }
+
         const originSquare = piece.flatChessCoords;
         const history = this.state.history;
         const { boardConfig } = history[this.state.stepNumber];
-
+        console.log(boardConfig);
         for (let col = 0; col < 8; col++) {
             for (let row = 0; row < 8; row++) {
                 //only allow this for whoever's turn it is
                 if (this.draggingPiece.white === this.state.whiteIsNext) {
                     //cycle through every tile to see valid moves
-                    const tile = convertNotation([col, row]).join("");
+                    let tile = convertNotation([col, row]).join("");
                     const tileElement = document.querySelector(`#${tile}`);
+                    let finalResult = { validMove: false };
 
-                    //is valid move?
-                    const result = chess(
+                    //sees if the move is a basic move of the piece
+                    let basicResult = chess(
                         tile,
                         originSquare,
-                        piece,
+                        this.draggingPiece,
                         boardConfig,
-                        true,
                     );
 
-                    if (result.validMove) {
-                        this.draggingPieceMoveable.push(tileElement);
+                    if (basicResult.validMove) {
+                        //filters that move to see if it leaves king in check
+                        finalResult = checkFiltering(
+                            tile,
+                            originSquare,
+                            this.draggingPiece,
+                            boardConfig,
+                            basicResult,
+                        );
+
+                        if (finalResult.validMove) {
+                            this.draggingPieceMoveable.push(tileElement);
+                        }
                     }
                 }
             }
@@ -350,9 +419,6 @@ class ChessApp extends Component {
     render() {
         const history = this.state.history;
         const current = history[this.state.stepNumber];
-
-        //console log the history every time for fun
-        console.log(history);
 
         //displays whatever we set 'current' to
         return (

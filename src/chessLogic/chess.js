@@ -1,23 +1,14 @@
-import { getPieceWithCoords } from "../helper-functions/getPieceWithDom";
-import convertNotation from "../helper-functions/notationConverter";
-import boardStateConverter from "../helper-functions/boardStateConverter";
-import adjacentTile from "./adjacentTile";
-import { cloneDeep, isEmpty } from "lodash";
-import continuousPieceMovement from "./continuousPieceMovement";
-import isEmptyTile from "./isEmptyTile";
-import { Pawn, King } from "../pieces/allPieceExport.jsx";
 import knightLogic from "./basicMoveLogic/knightLogic";
 import bishopLogic from "./basicMoveLogic/bishopLogic";
 import rookLogic from "./basicMoveLogic/rookLogic";
 import queenLogic from "./basicMoveLogic/queenLogic";
 import pawnLogic from "./basicMoveLogic/pawnLogic";
 import kingLogic from "./basicMoveLogic/kingLogic";
-import checkFiltering from "./checkFiltering";
 
 //returns an object that tells us information about the turn
 function chess(target, origin, piece, boardConfig) {
     if (piece === undefined) {
-        console.log(piece);
+        return { validMove: false };
     }
     //initialize variables
     const pieceType = piece.name;
@@ -53,6 +44,7 @@ function chess(target, origin, piece, boardConfig) {
             break;
         case "Rook":
             validMove = rookLogic(target, origin, piece, boardConfig);
+
             break;
         case "Queen":
             validMove = queenLogic(target, origin, piece, boardConfig);

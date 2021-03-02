@@ -1,4 +1,5 @@
 import convertNotation from "../../helper-functions/notationConverter";
+import positionValidator from "../positionValidator";
 
 function castleHandler(to, toNum, castleEvent, boardConfig) {
     let simulBoardConfig = boardConfig;
@@ -27,11 +28,12 @@ function castleHandler(to, toNum, castleEvent, boardConfig) {
     }
 
     //update rook info
-    rook.chessCoords = convertNotation(rook.numberCoords);
-    rook.flatChessCoords = `${rook.chessCoords[0]}${rook.chessCoords[1]}`;
-    rook.id = `${
-        rook.flatChessCoords + "_" + rook.char.toUpperCase() + "_" + rook.color
-    }`;
+    positionValidator(rook, rook.numberCoords);
+    // rook.chessCoords = convertNotation(rook.numberCoords);
+    // rook.flatChessCoords = `${rook.chessCoords[0]}${rook.chessCoords[1]}`;
+    // rook.id = `${
+    //     rook.flatChessCoords + "_" + rook.char.toUpperCase() + "_" + rook.color
+    // }`;
 
     return simulBoardConfig;
 }

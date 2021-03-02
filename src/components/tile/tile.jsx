@@ -45,7 +45,17 @@ function Tile(props) {
     //if piece, sets piece coordinates to this tile
     if (piecePresent) {
         piece = tileConfig;
-        piece.updatePositionState(numberCoords);
+        piece.chessCoords = convertNotation(numberCoords);
+        piece.flatChessCoords = `${piece.chessCoords[0]}${piece.chessCoords[1]}`;
+        piece.id = `${
+            piece.flatChessCoords +
+            "_" +
+            piece.char.toUpperCase() +
+            "_" +
+            piece.color
+        }`;
+
+        //piece.updatePositionState(numberCoords);
     }
 
     //get image file from piece

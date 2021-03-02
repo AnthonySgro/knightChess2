@@ -3,6 +3,7 @@ import boardStateConverter from "../helper-functions/boardStateConverter";
 import { cloneDeep, isEmpty } from "lodash";
 import chess from "./chess";
 import castleHandler from "./basicMoveLogic/castleHandler";
+import positionValidator from "./positionValidator";
 
 //this performs a move, and checks to see if the piece's king is still in check.
 //if it is, valid move = false
@@ -13,9 +14,7 @@ function checkFiltering(target, origin, piece, boardConfig, basicMoveObj) {
     const castleEvent = basicMoveObj.castleEvent;
     const enPassantEvent = basicMoveObj.enPassantEvent;
 
-    let allPieces = [];
-    let whitePieces = [];
-    let blackPieces = [];
+    let kingInCheck = false;
 
     //get my coordinates prepped to work with the history object
     const toNumCoords = convertNotation([target[0], target[1]]);
@@ -30,18 +29,18 @@ function checkFiltering(target, origin, piece, boardConfig, basicMoveObj) {
     simulBoardConfig[frCoord[0]][frCoord[1]] = {};
     simulBoardConfig[toCoord[0]][toCoord[1]] = piece;
 
-    //now we need to handle special moves
-    //castling handler
+    //for special moves involving two pieces moving, we need to update the other piece's move
+    //castling updater will move the rook
     if (castleEvent.castleMove) {
         simulBoardConfig = castleHandler(
             toCoord,
             toNumCoords,
             castleEvent,
-            boardConfig,
+            simulBoardConfig,
         );
     }
 
-    //enPassant updater
+    //enPassant updater will remove the attacked pawn
     if (enPassantEvent) {
         if (piece.white) {
             simulBoardConfig[toCoord[0] + 1][toCoord[1]] = {};
@@ -50,52 +49,35 @@ function checkFiltering(target, origin, piece, boardConfig, basicMoveObj) {
         }
     }
 
-    //pawn move two tiles handler
-    if (pawnMovedTwo) {
-        piece.vulnerableToEnPassant = true;
-    }
-
-    //updates all piece collections
+    //finds the king of this player on simulated board
+    let thisKing = {};
     for (let col = 0; col < 8; col++) {
         for (let row = 0; row < 8; row++) {
             const cycleTilePiece = simulBoardConfig[col][row];
-
-            //if we encounter one of the other player's pieces
-            if (!isEmpty(cycleTilePiece)) {
-                allPieces.push(cycleTilePiece);
-                if (cycleTilePiece.white) {
-                    whitePieces.push(cycleTilePiece);
-                } else {
-                    blackPieces.push(cycleTilePiece);
+            if (
+                cycleTilePiece.name === "King" &&
+                cycleTilePiece.color === piece.color
+            ) {
+                if (piece.name === "King") {
+                    thisKing = cycleTilePiece;
+                } else if (piece.name !== "King") {
+                    thisKing = cloneDeep(cycleTilePiece);
                 }
             }
         }
     }
 
-    //en passant vulnerability handler
-    for (let i = 0; i < allPieces.length; i++) {
-        if (allPieces[i].name === "Pawn") {
-            if (allPieces[i] !== piece) {
-                allPieces[i].vulnerableToEnPassant = false;
-            }
-        }
-    }
-
-    //finds the king of this player on simulated board
-    let thisKing = {};
-    for (let i = 0; i < allPieces.length; i++) {
-        const currentPiece = allPieces[i];
-        if (
-            currentPiece.name === "King" &&
-            currentPiece.color === piece.color
-        ) {
-            thisKing = currentPiece;
-        }
-    }
-
     //if we moved the king, we have to update its coordinates
-    if (piece === thisKing) {
-        thisKing.updatePositionState(convertNotation(target));
+    if (piece == thisKing) {
+        thisKing.chessCoords = convertNotation(toNumCoords);
+        thisKing.flatChessCoords = `${thisKing.chessCoords[0]}${thisKing.chessCoords[1]}`;
+        thisKing.id = `${
+            thisKing.flatChessCoords +
+            "_" +
+            thisKing.char.toUpperCase() +
+            "_" +
+            thisKing.color
+        }`;
     }
 
     //check cycle through simulated board
@@ -108,15 +90,13 @@ function checkFiltering(target, origin, piece, boardConfig, basicMoveObj) {
                 !isEmpty(cycleTilePiece) &&
                 cycleTilePiece.color !== piece.color
             ) {
-                //check to see if it is is a valid move to attack our king
+                //check to see if it is is a basic move to attack our king
                 const result = chess(
                     thisKing.flatChessCoords,
                     cycleTilePiece.flatChessCoords,
                     cycleTilePiece,
                     simulBoardConfig,
-                    false,
                 );
-
                 let castleChecker1;
                 let castleChecker2;
 
@@ -137,6 +117,7 @@ function checkFiltering(target, origin, piece, boardConfig, basicMoveObj) {
                         cycleTilePiece,
                         simulBoardConfig,
                     );
+                    console.log(squaresInvolved);
 
                     //takes away castling if you are going through a check
                     if (castleChecker1.validMove || castleChecker2.validMove) {
@@ -152,15 +133,37 @@ function checkFiltering(target, origin, piece, boardConfig, basicMoveObj) {
         }
     }
 
-    return {
-        validMove: validMove,
-        finalBoardConfig: simulBoardConfig,
-        castleEvent: castleEvent,
-        enPassantEvent: enPassantEvent,
-        allPieces: allPieces,
-        whitePieces: whitePieces,
-        blackPieces: blackPieces,
-    };
+    //we have to change back our experimental king positioning
+    positionValidator(thisKing, origin);
+    if (piece.name === "King") {
+        positionValidator(piece, origin);
+    }
+
+    if (!validMove) {
+        return {
+            validMove: validMove,
+            finalBoardConfig: boardConfig,
+            pawnMovedTwo: false,
+            castleEvent: {
+                castleMove: false,
+                rookInvolved: {},
+                squaresInvolved: [],
+                type: "",
+                direction: "",
+            },
+            enPassantEvent: false,
+            kingInCheck: kingInCheck,
+        };
+    } else {
+        return {
+            validMove: validMove,
+            finalBoardConfig: simulBoardConfig,
+            pawnMovedTwo: pawnMovedTwo,
+            castleEvent: castleEvent,
+            enPassantEvent: enPassantEvent,
+            kingInCheck: kingInCheck,
+        };
+    }
 }
 
 export default checkFiltering;
