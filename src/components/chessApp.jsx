@@ -159,7 +159,9 @@ class ChessApp extends Component {
         //play sound
         const imageFileOfTarget = targetTile.firstChild.src;
         if (
-            imageFileOfTarget === "http://localhost:9000/images/placeholder.png"
+            imageFileOfTarget ===
+                "http://localhost:9000/images/placeholder.png" &&
+            !result.enPassantEvent
         ) {
             playMoveSound();
         } else {
@@ -171,13 +173,6 @@ class ChessApp extends Component {
 
         //snag our board configuration returned by chess.js
         let boardConfig = result.finalBoardConfig;
-
-        const {
-            castleMove,
-            direction,
-            type,
-            rookInvolved,
-        } = result.castleEvent;
 
         //increment move
         const newStepNumber = this.state.stepNumber + 1;
@@ -197,6 +192,8 @@ class ChessApp extends Component {
     //purely for getting the piece that is being dragged
     dragStartHandler(e, piece) {
         this.draggingPiece = piece;
+        const history = this.state.history;
+        const current = history[this.state.stepNumber];
     }
 
     //aesthetics for entering a square on drag

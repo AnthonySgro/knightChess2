@@ -5,11 +5,15 @@ import adjacentTile from "./adjacentTile";
 import { cloneDeep, isEmpty } from "lodash";
 import continuousPieceMovement from "./continuousPieceMovement";
 import isEmptyTile from "./isEmptyTile";
+import Pawn from "../pieces/pawn.jsx";
 
 //returns an object that tells us information about the turn
 function chess(target, origin, piece, boardConfig, checkDetection) {
     const pieceType = piece.name;
     let validMove = false;
+
+    let pawnMovedTwo = false;
+    let enPassantEvent = false;
 
     let castleEvent = {
         castleMove: false,
@@ -34,7 +38,6 @@ function chess(target, origin, piece, boardConfig, checkDetection) {
             const twoTilesAhead = adjacentTile(origin, "up", 2, piece.color);
             const lAttack = adjacentTile(origin, "up-left", 1, piece.color);
             const rAttack = adjacentTile(origin, "up-right", 1, piece.color);
-
             switch (target) {
                 //moving up one
                 case tileAhead:
@@ -55,6 +58,7 @@ function chess(target, origin, piece, boardConfig, checkDetection) {
                         nextTileEmpty &&
                         piece.moveTwoAvailable
                     ) {
+                        pawnMovedTwo = true;
                         validMove = true;
                     }
 
@@ -64,14 +68,66 @@ function chess(target, origin, piece, boardConfig, checkDetection) {
                     //if we are capturing an opponent's piece
                     if (capturingOppPiece) {
                         validMove = true;
-                    }
+                        //if we aren't, it could be enpassant
+                    } else if (!capturingPiece) {
+                        //find enPassant square
+                        const enPassantSquare = adjacentTile(
+                            lAttack,
+                            "down",
+                            1,
+                            piece.color,
+                        );
 
+                        //if theres a piece
+                        if (!isEmptyTile(enPassantSquare, boardConfig)) {
+                            //is it a pawn?
+                            const passantPiece = getPieceWithCoords(
+                                enPassantSquare,
+                                boardConfig,
+                            );
+
+                            if (passantPiece instanceof Pawn) {
+                                //is it vulnerable to en passant?
+                                if (passantPiece.vulnerableToEnPassant) {
+                                    validMove = true;
+                                    enPassantEvent = true;
+                                }
+                            }
+                        }
+                    }
                     break;
                 case rAttack:
                     //if we are capturing an opponent's piece
                     if (capturingOppPiece) {
                         validMove = true;
+                    } else if (!capturingPiece) {
+                        //find enPassant square
+                        const enPassantSquare = adjacentTile(
+                            rAttack,
+                            "down",
+                            1,
+                            piece.color,
+                        );
+
+                        //if theres a piece
+                        if (!isEmptyTile(enPassantSquare, boardConfig)) {
+                            //is it a pawn?
+                            const passantPiece = getPieceWithCoords(
+                                enPassantSquare,
+                                boardConfig,
+                            );
+
+                            if (passantPiece instanceof Pawn) {
+                                //is it vulnerable to en passant?
+                                if (passantPiece.vulnerableToEnPassant) {
+                                    validMove = true;
+                                    enPassantEvent = true;
+                                }
+                            }
+                        }
                     }
+
+                    //if en passant
 
                     break;
             }
@@ -156,6 +212,7 @@ function chess(target, origin, piece, boardConfig, checkDetection) {
             if (validBishopMoves.includes(target)) {
                 validMove = true;
             }
+
             break;
         case "Rook":
             //we are going to find the direction by making one true
@@ -379,10 +436,19 @@ function chess(target, origin, piece, boardConfig, checkDetection) {
         return { validMove: validMove };
     }
 
+    //we are going to send these back
     let simulBoardConfig;
+    let allPieces = [];
+    let whitePieces = [];
+    let blackPieces = [];
 
     //simulate move to ensure king is not in check
     if (validMove && checkDetection) {
+        //if moved two, pawn is vulnerable to enPassant
+        if (pawnMovedTwo) {
+            piece.vulnerableToEnPassant = true;
+        }
+
         //get my coordinates prepped to work with the history object
         const toNumCoords = convertNotation([target[0], target[1]]);
         const toCoord = boardStateConverter(toNumCoords);
@@ -433,10 +499,12 @@ function chess(target, origin, piece, boardConfig, checkDetection) {
             }`;
         }
 
+        //enPassant updater
+        if (enPassantEvent) {
+            simulBoardConfig[toCoord[0] + 1][toCoord[1]] = {};
+        }
+
         //updates all piece collections
-        let allPieces = [];
-        let whitePieces = [];
-        let blackPieces = [];
         for (let col = 0; col < 8; col++) {
             for (let row = 0; row < 8; row++) {
                 const cycleTilePiece = simulBoardConfig[col][row];
@@ -449,6 +517,15 @@ function chess(target, origin, piece, boardConfig, checkDetection) {
                     } else {
                         blackPieces.push(cycleTilePiece);
                     }
+                }
+            }
+        }
+
+        //en passant vulnerability handler
+        for (let i = 0; i < allPieces.length; i++) {
+            if (allPieces[i] instanceof Pawn) {
+                if (allPieces[i] !== piece) {
+                    allPieces[i].vulnerableToEnPassant = false;
                 }
             }
         }
@@ -495,8 +572,6 @@ function chess(target, origin, piece, boardConfig, checkDetection) {
                     const { squaresInvolved, castleMove } = castleEvent;
                     //if castling, we have to check more than just the king's position
                     if (castleMove) {
-                        console.log(squaresInvolved);
-
                         //makes sure you don't castle through or out of check
                         castleChecker1 = chess(
                             squaresInvolved[0],
@@ -535,6 +610,10 @@ function chess(target, origin, piece, boardConfig, checkDetection) {
         validMove: validMove,
         finalBoardConfig: simulBoardConfig,
         castleEvent: castleEvent,
+        enPassantEvent: enPassantEvent,
+        allPieces: allPieces,
+        whitePieces: whitePieces,
+        blackPieces: blackPieces,
     };
 }
 
