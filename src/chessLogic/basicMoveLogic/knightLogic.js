@@ -21,7 +21,6 @@ function knightLogic(target, origin, piece, boardConfig) {
     const prelimDown = adjacentTile(origin, "down", 2, piece.color);
     const prelimLeft = adjacentTile(origin, "left", 2, piece.color);
 
-    console.log(target);
     //knight moves
     switch (target) {
         case adjacentTile(prelimUp, "right", 1, piece.color):

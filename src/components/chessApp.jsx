@@ -13,6 +13,7 @@ import {
     getPieceWithDom,
     getPieceWithCoords,
 } from "../helper-functions/getPieceWithDom";
+import checkFiltering from "../chessLogic/checkFiltering.js";
 
 //ChessApp Component renders entire application
 class ChessApp extends Component {
@@ -148,18 +149,26 @@ class ChessApp extends Component {
 
         //**everything before is guaranteed to happen**
 
-        //returns an object containing information about the move result
-        const result = chess(to, from, movedPiece, oldBoardConfig, true);
+        //sees if the move is a basic move of the piece
+        const basicResult = chess(to, from, movedPiece, oldBoardConfig);
 
-        //if invalid move, do not proceed
-        if (!result.validMove) {
+        //if invalid basic move, do not proceed
+        if (!basicResult.validMove) {
             return;
         }
 
-        // i do not understand why this breaks everything but it does
-        // this.whitePieces = result.whitePieces;
-        // this.blackPieces = result.blackPieces;
-        // this.allPieces = result.allPieces;
+        //filters that move to see if it leaves king in check
+        const finalResult = checkFiltering(
+            to,
+            from,
+            movedPiece,
+            oldBoardConfig,
+            basicResult,
+        );
+
+        if (!finalResult.validMove) {
+            return;
+        }
 
         //**everything after only happens if it is a valid move**
 
@@ -168,23 +177,13 @@ class ChessApp extends Component {
         //play sound
         const imageFileOfTarget = targetTile.firstChild.src;
         if (
-            (imageFileOfTarget === placeholder ||
-                imageFileOfTarget === validDot) &&
-            !result.enPassantEvent
+            imageFileOfTarget === placeholder ||
+            imageFileOfTarget === validDot
         ) {
             playMoveSound();
         } else {
             playCaptureSound();
         }
-
-        //if pawn move, it lost right to initial two square move
-        // if (movedPiece instanceof Pawn) {
-        //     this.allPieces.forEach((somePiece) => {
-        //         if (somePiece === movedPiece) {
-        //             somePiece.moveTwoAvailable = false;
-        //         }
-        //     });
-        // }
 
         // pawn and king have special moves we must take away if they moved
         this.allPieces.forEach((somePiece) => {
@@ -203,7 +202,7 @@ class ChessApp extends Component {
         this.lastMoveSquares = [from, to];
 
         //snag our board configuration returned by chess.js
-        let boardConfig = result.finalBoardConfig;
+        let boardConfig = finalResult.finalBoardConfig;
 
         //increment move
         const newStepNumber = this.state.stepNumber + 1;
