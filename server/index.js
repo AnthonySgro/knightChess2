@@ -4,7 +4,9 @@ const morgan = require("morgan");
 const app = express();
 const PORT = 9000;
 
-//routes
+// Database
+const { db, syncAndSeed } = require("./db");
+syncAndSeed();
 
 // Logging middleware
 app.use(morgan("dev"));

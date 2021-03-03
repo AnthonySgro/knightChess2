@@ -2,7 +2,8 @@
 
 This is an application created in order to play a multiplayer
 chess game. It features Node.JS, Express, and React, as well as
-some other libraries and modules to help bring the app to life.
+some other libraries and modules within the client-side code to
+help bring the app to life.
 
 # Startup Guide
 
