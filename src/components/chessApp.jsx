@@ -40,7 +40,7 @@ class ChessApp extends Component {
             ],
             //initializes game to move 0 and white-to-move
             stepNumber: 0,
-            whiteIsNext: false,
+            whiteIsNext: true,
         };
 
         //dragging props
