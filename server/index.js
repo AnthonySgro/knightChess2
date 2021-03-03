@@ -2,7 +2,7 @@ const express = require("express");
 const path = require("path");
 const morgan = require("morgan");
 const app = express();
-const PORT = 9000;
+const PORT = process.env.PORT || 9000;
 
 // Database
 const { db, syncAndSeed } = require("./db");
