@@ -86,6 +86,7 @@ function Tile(props) {
         accept: "piece",
         drop: (item) => {
             const [fromPosition] = item.id.split("_");
+
             props.onMove(boardConfig, item.id, fromPosition, chessCoordsConcat);
 
             //remove highlight

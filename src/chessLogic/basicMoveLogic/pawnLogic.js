@@ -7,6 +7,7 @@ function pawnLogic(target, origin, piece, boardConfig) {
     let validMove = false;
     let pawnMovedTwo = false;
     let enPassantEvent = false;
+    let pawnPromotion = false;
 
     //attacked piece info
     const attackedPiece = getPieceWithCoords(target, boardConfig);
@@ -118,10 +119,15 @@ function pawnLogic(target, origin, piece, boardConfig) {
             break;
     }
 
+    if (validMove && (target[1] === "1" || target[1] === "8")) {
+        pawnPromotion = true;
+    }
+
     return {
         validMove: validMove,
         pawnMovedTwo: pawnMovedTwo,
         enPassantEvent: enPassantEvent,
+        pawnPromotionEvent: pawnPromotion,
     };
 }
 

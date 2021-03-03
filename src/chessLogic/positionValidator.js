@@ -10,7 +10,6 @@ function positionValidator(piece, coords) {
         "_" +
         piece.color
     }`;
-    console.log(piece);
 }
 
 export default positionValidator;

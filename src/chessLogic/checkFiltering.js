@@ -4,6 +4,7 @@ import { cloneDeep, isEmpty } from "lodash";
 import chess from "./chess";
 import castleHandler from "./basicMoveLogic/castleHandler";
 import positionValidator from "./positionValidator";
+import { Queen, Rook, Knight, Bishop } from "../pieces/allPieceExport.jsx";
 
 //this performs a move, and checks to see if the piece's king is still in check.
 //if it is, valid move = false
@@ -13,6 +14,7 @@ function checkFiltering(target, origin, piece, boardConfig, basicMoveObj) {
     const pawnMovedTwo = basicMoveObj.pawnMovedTwo;
     const castleEvent = basicMoveObj.castleEvent;
     const enPassantEvent = basicMoveObj.enPassantEvent;
+    const promotionEvent = basicMoveObj.pawnPromotionEvent;
 
     let kingInCheck = false;
 
@@ -117,7 +119,6 @@ function checkFiltering(target, origin, piece, boardConfig, basicMoveObj) {
                         cycleTilePiece,
                         simulBoardConfig,
                     );
-                    console.log(squaresInvolved);
 
                     //takes away castling if you are going through a check
                     if (castleChecker1.validMove || castleChecker2.validMove) {
@@ -153,6 +154,7 @@ function checkFiltering(target, origin, piece, boardConfig, basicMoveObj) {
             },
             enPassantEvent: false,
             kingInCheck: kingInCheck,
+            promotionEvent: false,
         };
     } else {
         return {
@@ -162,6 +164,7 @@ function checkFiltering(target, origin, piece, boardConfig, basicMoveObj) {
             castleEvent: castleEvent,
             enPassantEvent: enPassantEvent,
             kingInCheck: kingInCheck,
+            promotionEvent: promotionEvent,
         };
     }
 }

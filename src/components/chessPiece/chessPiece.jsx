@@ -7,8 +7,6 @@ function ChessPiece(props) {
     //sets piece coordinates
     piece.updatePositionState(numberCoords);
 
-    console.log();
-
     // drag and drop configuration
     const [{ isDragging }, drag, preview] = useDrag({
         item: { type: "piece", id: piece.id },

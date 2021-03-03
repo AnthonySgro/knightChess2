@@ -10,11 +10,13 @@ function chess(target, origin, piece, boardConfig) {
     if (piece === undefined) {
         return { validMove: false };
     }
+
     //initialize variables
     const pieceType = piece.name;
     let validMove = false;
     let pawnMovedTwo = false;
     let enPassantEvent = false;
+    let pawnPromotion = false;
     let castleEvent = {
         castleMove: false,
         rookInvolved: {},
@@ -35,6 +37,7 @@ function chess(target, origin, piece, boardConfig) {
             validMove = pawnMoveObject.validMove;
             pawnMovedTwo = pawnMoveObject.pawnMovedTwo;
             enPassantEvent = pawnMoveObject.enPassantEvent;
+            pawnPromotion = pawnMoveObject.pawnPromotionEvent;
             break;
         case "Knight":
             validMove = knightLogic(target, origin, piece, boardConfig);
@@ -67,6 +70,7 @@ function chess(target, origin, piece, boardConfig) {
         pawnMovedTwo: pawnMovedTwo,
         enPassantEvent: enPassantEvent,
         castleEvent: castleEvent,
+        pawnPromotion: pawnPromotion,
     };
 }
 

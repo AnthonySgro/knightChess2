@@ -19,6 +19,10 @@ img {
     display: block;
 }
 
+#history-container {
+    background-color: red;
+}
+
 .dragImage {
     transform: scale(1.5);
 }
@@ -28,6 +32,7 @@ img {
 }
 
 #chess-app {
+    position: relative;
     background-color: #facb5d;
     border-radius: 10px;
     padding: 25px 25px 10px 25px;
@@ -126,4 +131,177 @@ img {
 
 #h1-filter {
     border-bottom-right-radius: 0.4rem;
+}
+
+/* USER INTERFACE */
+.greenbtn {
+    box-shadow: 0 7px 10px -9px rgba(0, 0, 0, 0.62);
+    background-color: #06d6a0;
+    border: 1px solid transparent;
+    border-radius: 5em;
+    color: #f1faee;
+    outline: none;
+    padding: 5px 10px;
+    margin: 10px;
+    width: 20%;
+}
+
+.redbtn {
+    box-shadow: 0 7px 10px -9px rgba(0, 0, 0, 0.62);
+    background-color: #ef476f;
+    border: 1px solid transparent;
+    border-radius: 50px;
+    color: #f1faee;
+    outline: none;
+    padding: 5px 10px;
+    margin: 0px;
+    width: 10%;
+}
+
+#phase-information,
+#turn-information {
+    box-shadow: 0 7px 10px -9px rgba(0, 0, 0, 0.62);
+    background-color: #f1faee;
+    border: 1px solid transparent;
+    border-radius: 12px;
+    color: black;
+    outline: none;
+    padding: 0px 0px;
+    margin: 10px;
+    width: 20%;
+    display: inline-block;
+    overflow-wrap: break-word;
+    font-size: 8px;
+}
+
+.user-feedback {
+    box-shadow: 0 7px 10px -9px rgba(0, 0, 0, 0.62);
+    background-color: #f1faee;
+    border: 1px solid transparent;
+    border-radius: 12px;
+    color: black;
+    outline: none;
+    padding: 0px 0px;
+    margin: 0px;
+    height: 40px;
+    width: 40%;
+    display: inline-block;
+    overflow-wrap: break-word;
+    font-size: 8px;
+}
+
+#init-game {
+    display: inline-block;
+}
+
+.btn:hover,
+.btn:focus {
+    transition: background-color 200ms ease-in-out;
+    background-color: #05a77c;
+    cursor: pointer;
+}
+
+.greenbtn:hover {
+    transition: background-color 200ms ease-in-out;
+    background-color: #05a77c;
+    cursor: pointer;
+}
+
+.redbtn:hover {
+    transition: background-color 200ms ease-in-out;
+    background-color: #cc3b5d;
+    cursor: pointer;
+}
+
+.greenbtn:active {
+    transition: background-color 0ms;
+    transform: translateY(0.1em);
+    background-color: #047758;
+    transform: scale(0.98);
+}
+
+.redbtn:active {
+    transition: background-color 0ms;
+    transform: translateY(0.1em);
+    background-color: #8f2840;
+    transform: scale(0.98);
+}
+
+#rules-btn {
+    position: absolute;
+    top: 30px;
+    left: 30px;
+    width: 8%;
+}
+
+#close-btn {
+    width: 25%;
+}
+
+.rules {
+    border-radius: 10px;
+    position: absolute;
+    top: 4.7vh;
+    left: -4px;
+    background: #047758;
+    min-height: 80vh;
+    width: 23%;
+    padding: 20px;
+    line-height: 1.5;
+    transform: translateX(-368px);
+    transition: transform 1s ease-in-out;
+    z-index: 1;
+}
+
+.rules.show {
+    transform: translateX(30px);
+}
+
+#history-box {
+    border-radius: 10px;
+    position: absolute;
+    top: 4.7vh;
+    right: 30px;
+    background-color: #047758;
+    width: 23%;
+    min-height: 80vh;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+}
+
+#clocks {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-evenly;
+}
+
+#placeholder {
+    flex: 2;
+}
+
+.clock {
+    flex: 3;
+    font-size: xx-large;
+}
+
+.moveNum {
+    margin: 0.5rem;
+}
+
+#moveNumber {
+    margin-top: 1rem;
+}
+
+#white-history,
+#black-history {
+    margin-top: 1rem;
+}
+
+#history {
+    display: flex;
+    justify-content: space-evenly;
+    position: relative;
+    margin-top: 1rem;
+    background-color: #073b4c;
 }

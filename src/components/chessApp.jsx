@@ -2,18 +2,16 @@ import React, { Component } from "react";
 
 //prettier-ignore
 import { Pawn, Rook, Knight, Bishop, Queen, King } from "../pieces/allPieceExport.jsx";
-import Chessboard from "./chessboard/chessboard.jsx";
 import UserInterface from "./ui/userInterface.jsx";
 import convertNotation from "../helper-functions/notationConverter";
-import positionValidator from "../chessLogic/positionValidator";
-import { cloneDeep, isEmpty, some } from "lodash";
+import { cloneDeep, isEmpty } from "lodash";
 import { playMoveSound, playCaptureSound } from "../helper-functions/sounds";
 import chess from "../chessLogic/chess";
-import {
-    getPieceWithDom,
-    getPieceWithCoords,
-} from "../helper-functions/getPieceWithDom";
+import { getPieceWithDom } from "../helper-functions/getPieceWithDom";
 import checkFiltering from "../chessLogic/checkFiltering.js";
+
+//components
+import Chessboard from "./chessboard/chessboard.jsx";
 import boardStateConverter from "../helper-functions/boardStateConverter.js";
 
 //ChessApp Component renders entire application
@@ -47,90 +45,26 @@ class ChessApp extends Component {
         this.draggingPiece = {};
         this.draggingPieceMoveable = [];
 
+        //function binding
         this.idToPiece = this.idToPiece.bind(this);
         this.moveHandler = this.moveHandler.bind(this);
         this.dragStartHandlerProp = this.dragStartHandler.bind(this);
         this.dragEnterHandlerProp = this.dragEnterHandler.bind(this);
         this.dragLeaveHandlerProp = this.dragLeaveHandler.bind(this);
-        (this.whitePieces = []),
-            (this.blackPieces = []),
-            (this.allPieces = []),
-            //remembers
-            (this.lastMoveSquares = []);
+        this.setUpBoard = this.setUpBoard.bind(this);
+        this.moveBack = this.moveBack.bind(this);
+        this.moveForward = this.moveForward.bind(this);
+
+        //pieces
+        this.whitePieces = [];
+        this.blackPieces = [];
+        this.allPieces = [];
+        //remembers
+        this.lastMoveSquares = [];
     }
 
-    componentDidMount(prevProps) {
-        let R1 = new Rook(this.props, "R");
-        let N1 = new Knight(this.props, "N");
-        let B1 = new Bishop(this.props, "B");
-        let Q1 = new Queen(this.props, "Q");
-        let K1 = new King(this.props, "K");
-        let B2 = new Bishop(this.props, "B");
-        let N2 = new Knight(this.props, "N");
-        let R2 = new Rook(this.props, "R");
-        let P1 = new Pawn(this.props, "P");
-        let P2 = new Pawn(this.props, "P");
-        let P3 = new Pawn(this.props, "P");
-        let P4 = new Pawn(this.props, "P");
-        let P5 = new Pawn(this.props, "P");
-        let P6 = new Pawn(this.props, "P");
-        let P7 = new Pawn(this.props, "P");
-        let P8 = new Pawn(this.props, "P");
-
-        let r1 = new Rook(this.props, "r");
-        let n1 = new Knight(this.props, "n");
-        let b1 = new Bishop(this.props, "b");
-        let q1 = new Queen(this.props, "q");
-        let k1 = new King(this.props, "k");
-        let b2 = new Bishop(this.props, "b");
-        let n2 = new Knight(this.props, "n");
-        let r2 = new Rook(this.props, "r");
-        let p1 = new Pawn(this.props, "p");
-        let p2 = new Pawn(this.props, "p");
-        let p3 = new Pawn(this.props, "p");
-        let p4 = new Pawn(this.props, "p");
-        let p5 = new Pawn(this.props, "p");
-        let p6 = new Pawn(this.props, "p");
-        let p7 = new Pawn(this.props, "p");
-        let p8 = new Pawn(this.props, "p");
-
-        //prettier-ignore
-        const whiteCollection = [R1,N1,B1,Q1,K1,B2,N2,R2,P1,P2,P3,P4,P5,P6,P7,P8];
-
-        //prettier-ignore
-        const blackCollection = [r1,n1,b1,q1,k1,b2,n2,r2,p1,p2,p3,p4,p5,p6,p7,p8];
-
-        //initial board configuration, edit to experiment with positions
-        const boardConfig = [
-            [r1, n1, b1, q1, k1, b2, n2, r2],
-            [p1, p2, p3, p4, p5, p6, p7, p8],
-            [{}, {}, {}, {}, {}, {}, {}, {}],
-            [{}, {}, {}, {}, {}, {}, {}, {}],
-            [{}, {}, {}, {}, {}, {}, {}, {}],
-            [{}, {}, {}, {}, {}, {}, {}, {}],
-            [P1, P2, P3, P4, P5, P6, P7, P8],
-            [R1, N1, B1, Q1, K1, B2, N2, R2],
-        ];
-
-        const boardConfig1 = [
-            [{}, {}, {}, {}, k1, {}, {}, {}],
-            [{}, {}, {}, {}, {}, {}, {}, {}],
-            [{}, {}, {}, {}, {}, {}, {}, {}],
-            [{}, {}, {}, {}, {}, {}, {}, {}],
-            [{}, {}, {}, {}, {}, {}, {}, {}],
-            [{}, {}, {}, {}, {}, {}, {}, {}],
-            [{}, {}, {}, r1, {}, {}, {}, {}],
-            [{}, {}, {}, {}, K1, {}, {}, {}],
-        ];
-
-        this.whitePieces = whiteCollection;
-        this.blackPieces = blackCollection;
-        this.allPieces = whiteCollection.concat(blackCollection);
-
-        //initializes starting board configuration and piece collections
-        this.setState({
-            history: [{ boardConfig }],
-        });
+    componentDidMount() {
+        this.setUpBoard();
     }
 
     //this function is responsible for returning a piece object given an id
@@ -138,6 +72,7 @@ class ChessApp extends Component {
         const [movedPiece] = this.allPieces.filter(
             (piece) => piece.id === pieceId,
         );
+
         return movedPiece;
     }
 
@@ -160,7 +95,6 @@ class ChessApp extends Component {
         }
 
         //**everything before is guaranteed to happen**
-
         //sees if the move is a basic move of the piece
         const basicResult = chess(to, from, movedPiece, oldBoardConfig);
 
@@ -170,7 +104,7 @@ class ChessApp extends Component {
         }
 
         //filters that move to see if it leaves king in check
-        const finalResult = checkFiltering(
+        let finalResult = checkFiltering(
             to,
             from,
             movedPiece,
@@ -198,6 +132,21 @@ class ChessApp extends Component {
             }
         }
 
+        //promotion (only to queen rn)
+        let promo;
+        const coords = convertNotation(to);
+        const id = boardStateConverter(coords);
+        if (to[1] === "1" && movedPiece.name === "Pawn") {
+            promo = new Queen(this.props, "q");
+            finalResult.finalBoardConfig[id[0]][id[1]] = promo;
+            this.blackPieces.push(promo);
+        } else if (to[1] === "8" && movedPiece.name === "Pawn") {
+            promo = new Queen(this.props, "Q");
+            finalResult.finalBoardConfig[id[0]][id[1]] = promo;
+            this.allPieces.push(promo);
+            this.whitePieces.push(promo);
+        }
+
         //restrict one-time moves
         if (movedPiece.name === "King") {
             movedPiece.castlingAvailable = false;
@@ -212,22 +161,6 @@ class ChessApp extends Component {
 
         //get the new board
         let newBoardConfiguration = finalResult.finalBoardConfig;
-
-        // const toBoard = boardStateConverter(convertNotation(from));
-        // const otherWayPiece = oldBoardConfig[toBoard[0]][toBoard[1]];
-        // console.log(otherWayPiece);
-        // if (to !== movedPiece.flatChessCoords) {
-        //     const someChessCoords = convertNotation(to);
-        //     movedPiece.chessCoords = convertNotation(someChessCoords);
-        //     movedPiece.flatChessCoords = `${movedPiece.chessCoords[0]}${movedPiece.chessCoords[1]}`;
-        //     movedPiece.id = `${
-        //         movedPiece.flatChessCoords +
-        //         "_" +
-        //         movedPiece.char.toUpperCase() +
-        //         "_" +
-        //         movedPiece.color
-        //     }`;
-        // }
 
         //sounds
         const placeholder = "http://localhost:9000/images/placeholder.png";
@@ -267,6 +200,7 @@ class ChessApp extends Component {
     dragStartHandler(e, piece) {
         this.draggingPieceMoveable = [];
         this.draggingPiece = piece;
+
         if (isEmpty(piece) || piece === undefined) {
             return;
         }
@@ -416,14 +350,107 @@ class ChessApp extends Component {
         }
     }
 
+    setUpBoard() {
+        let R1 = new Rook(this.props, "R");
+        let N1 = new Knight(this.props, "N");
+        let B1 = new Bishop(this.props, "B");
+        let Q1 = new Queen(this.props, "Q");
+        let K1 = new King(this.props, "K");
+        let B2 = new Bishop(this.props, "B");
+        let N2 = new Knight(this.props, "N");
+        let R2 = new Rook(this.props, "R");
+        let P1 = new Pawn(this.props, "P");
+        let P2 = new Pawn(this.props, "P");
+        let P3 = new Pawn(this.props, "P");
+        let P4 = new Pawn(this.props, "P");
+        let P5 = new Pawn(this.props, "P");
+        let P6 = new Pawn(this.props, "P");
+        let P7 = new Pawn(this.props, "P");
+        let P8 = new Pawn(this.props, "P");
+
+        let r1 = new Rook(this.props, "r");
+        let n1 = new Knight(this.props, "n");
+        let b1 = new Bishop(this.props, "b");
+        let q1 = new Queen(this.props, "q");
+        let k1 = new King(this.props, "k");
+        let b2 = new Bishop(this.props, "b");
+        let n2 = new Knight(this.props, "n");
+        let r2 = new Rook(this.props, "r");
+        let p1 = new Pawn(this.props, "p");
+        let p2 = new Pawn(this.props, "p");
+        let p3 = new Pawn(this.props, "p");
+        let p4 = new Pawn(this.props, "p");
+        let p5 = new Pawn(this.props, "p");
+        let p6 = new Pawn(this.props, "p");
+        let p7 = new Pawn(this.props, "p");
+        let p8 = new Pawn(this.props, "p");
+
+        //prettier-ignore
+        const whiteCollection = [R1,N1,B1,Q1,K1,B2,N2,R2,P1,P2,P3,P4,P5,P6,P7,P8];
+
+        //prettier-ignore
+        const blackCollection = [r1,n1,b1,q1,k1,b2,n2,r2,p1,p2,p3,p4,p5,p6,p7,p8];
+
+        //initial board configuration, edit to experiment with positions
+        const boardConfig = [
+            [r1, n1, b1, q1, k1, b2, n2, r2],
+            [p1, p2, p3, p4, p5, p6, p7, p8],
+            [{}, {}, {}, {}, {}, {}, {}, {}],
+            [{}, {}, {}, {}, {}, {}, {}, {}],
+            [{}, {}, {}, {}, {}, {}, {}, {}],
+            [{}, {}, {}, {}, {}, {}, {}, {}],
+            [P1, P2, P3, P4, P5, P6, P7, P8],
+            [R1, N1, B1, Q1, K1, B2, N2, R2],
+        ];
+
+        const boardConfig1 = [
+            [{}, {}, {}, {}, k1, {}, {}, {}],
+            [{}, {}, P1, {}, {}, {}, {}, {}],
+            [{}, {}, {}, {}, {}, {}, {}, {}],
+            [{}, {}, {}, {}, {}, {}, {}, {}],
+            [{}, {}, {}, {}, {}, {}, {}, K1],
+            [{}, {}, {}, {}, {}, {}, {}, {}],
+            [{}, {}, {}, {}, {}, {}, {}, {}],
+            [{}, {}, {}, {}, {}, {}, {}, {}],
+        ];
+
+        this.whitePieces = whiteCollection;
+        this.blackPieces = blackCollection;
+        this.allPieces = whiteCollection.concat(blackCollection);
+
+        //initializes starting board configuration and piece collections
+        this.setState({
+            history: [{ boardConfig }],
+            stepNumber: 0,
+            whiteIsNext: true,
+        });
+    }
+
+    moveBack(e) {
+        if (this.state.stepNumber > 0) {
+            this.setState({
+                stepNumber: this.state.stepNumber - 1,
+            });
+        }
+    }
+    moveForward(e) {
+        if (this.state.stepNumber < this.state.history.length - 1) {
+            this.setState({
+                stepNumber: this.state.stepNumber + 1,
+            });
+        }
+    }
+
     render() {
         const history = this.state.history;
         const current = history[this.state.stepNumber];
 
+        console.log(current);
+
         //displays whatever we set 'current' to
         return (
-            <div id="chess-app">
-                <div id="interface-container">
+            <div id="chess-app" className="major-comp">
+                <div id="interface-container" className="major-comp">
                     <Chessboard
                         boardConfig={current.boardConfig}
                         playerTurn={this.state.whiteIsNext}
@@ -433,7 +460,13 @@ class ChessApp extends Component {
                         onDragLeave={this.dragLeaveHandlerProp}
                         onDragStart={this.dragStartHandlerProp}
                     />
-                    <UserInterface />
+                    <UserInterface
+                        turn={this.state.whiteIsNext}
+                        history={history}
+                        moveForward={this.moveForward}
+                        moveBack={this.moveBack}
+                        setUpBoard={this.setUpBoard}
+                    />
                 </div>
             </div>
         );
