@@ -97,9 +97,11 @@ img {
 }
 
 .moveable {
-    border-radius: 5rem;
-    transform: scale(0.4, 0.4);
-    background-color: rgba(6, 214, 158, 0.396);
+    background: radial-gradient(
+        24px circle at 30px 30px,
+        rgba(6, 214, 158, 0.396) 50%,
+        transparent 0%
+    );
 }
 
 .moveable-capturable-light-square {

@@ -204,24 +204,10 @@ class ChessApp extends Component {
         if (isEmpty(piece) || piece === undefined) {
             return;
         }
-        let someChessCoords;
-        if (e.target.parentNode.id !== this.draggingPiece.flatChessCoords) {
-            someChessCoords = convertNotation(e.target.parentNode.id);
-            this.draggingPiece.chessCoords = convertNotation(someChessCoords);
-            this.draggingPiece.flatChessCoords = `${this.draggingPiece.chessCoords[0]}${this.draggingPiece.chessCoords[1]}`;
-            this.draggingPiece.id = `${
-                this.draggingPiece.flatChessCoords +
-                "_" +
-                this.draggingPiece.char.toUpperCase() +
-                "_" +
-                this.draggingPiece.color
-            }`;
-        }
 
         const originSquare = piece.flatChessCoords;
         const history = this.state.history;
         const { boardConfig } = history[this.state.stepNumber];
-        console.log(boardConfig);
         for (let col = 0; col < 8; col++) {
             for (let row = 0; row < 8; row++) {
                 //only allow this for whoever's turn it is
@@ -427,6 +413,19 @@ class ChessApp extends Component {
     }
 
     moveBack(e) {
+        for (let col = 0; col < 8; col++) {
+            for (let row = 0; row < 8; row++) {
+                const tile = convertNotation([col, row]).join("");
+                const tileElement = document.querySelector(`#${tile}`);
+                tileElement.classList.remove(
+                    "involved-in-last-move-tile-light-square",
+                );
+                tileElement.classList.remove(
+                    "involved-in-last-move-tile-dark-square",
+                );
+                tileElement.classList.remove("involved-in-last-move-filter");
+            }
+        }
         if (this.state.stepNumber > 0) {
             this.setState({
                 stepNumber: this.state.stepNumber - 1,
