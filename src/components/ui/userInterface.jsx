@@ -11,7 +11,7 @@ class UserInterface extends Component {
                     id="init-game"
                     onClick={() => this.props.setUpBoard()}
                 >
-                    Setup Pieces
+                    Swap Side
                 </button>
                 <div id="phase-information">Selecting Phase</div>
                 <div id="turn-information">{turnInfo}</div>

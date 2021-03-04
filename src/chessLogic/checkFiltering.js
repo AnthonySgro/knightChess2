@@ -5,6 +5,7 @@ import chess from "./chess";
 import castleHandler from "./basicMoveLogic/castleHandler";
 import positionValidator from "./positionValidator";
 import { Queen, Rook, Knight, Bishop } from "../pieces/allPieceExport.jsx";
+import updatePieceCoords from "../helper-functions/updatePieceCoords";
 
 //this performs a move, and checks to see if the piece's king is still in check.
 //if it is, valid move = false
@@ -15,8 +16,7 @@ function checkFiltering(target, origin, piece, boardConfig, basicMoveObj) {
     const castleEvent = basicMoveObj.castleEvent;
     const enPassantEvent = basicMoveObj.enPassantEvent;
     const promotionEvent = basicMoveObj.pawnPromotionEvent;
-
-    let kingInCheck = false;
+    let dealtCheck = false;
 
     //get my coordinates prepped to work with the history object
     const toNumCoords = convertNotation([target[0], target[1]]);
@@ -51,8 +51,8 @@ function checkFiltering(target, origin, piece, boardConfig, basicMoveObj) {
         }
     }
 
-    //finds the king of this player on simulated board
     let thisKing = {};
+    let oppKing = {};
     for (let col = 0; col < 8; col++) {
         for (let row = 0; row < 8; row++) {
             const cycleTilePiece = simulBoardConfig[col][row];
@@ -60,33 +60,30 @@ function checkFiltering(target, origin, piece, boardConfig, basicMoveObj) {
                 cycleTilePiece.name === "King" &&
                 cycleTilePiece.color === piece.color
             ) {
+                //finds the king of this player on simulated board
                 if (piece.name === "King") {
                     thisKing = cycleTilePiece;
                 } else if (piece.name !== "King") {
                     thisKing = cloneDeep(cycleTilePiece);
                 }
+            } else if (
+                cycleTilePiece.name === "King" &&
+                cycleTilePiece.color !== piece.color
+            ) {
+                oppKing = cycleTilePiece;
             }
         }
     }
 
     //if we moved the king, we have to update its coordinates
     if (piece == thisKing) {
-        thisKing.chessCoords = convertNotation(toNumCoords);
-        thisKing.flatChessCoords = `${thisKing.chessCoords[0]}${thisKing.chessCoords[1]}`;
-        thisKing.id = `${
-            thisKing.flatChessCoords +
-            "_" +
-            thisKing.char.toUpperCase() +
-            "_" +
-            thisKing.color
-        }`;
+        updatePieceCoords(thisKing, target);
     }
 
     //check cycle through simulated board
     for (let col = 0; col < 8; col++) {
         for (let row = 0; row < 8; row++) {
             const cycleTilePiece = simulBoardConfig[col][row];
-
             //if we encounter one of the other player's pieces
             if (
                 !isEmpty(cycleTilePiece) &&
@@ -130,6 +127,8 @@ function checkFiltering(target, origin, piece, boardConfig, basicMoveObj) {
                 if (result.validMove) {
                     validMove = false;
                 }
+
+                //check to see if any of our pieces are attacking enemy king
             }
         }
     }
@@ -153,7 +152,7 @@ function checkFiltering(target, origin, piece, boardConfig, basicMoveObj) {
                 direction: "",
             },
             enPassantEvent: false,
-            kingInCheck: kingInCheck,
+            dealtCheck: false,
             promotionEvent: false,
         };
     } else {
@@ -163,7 +162,7 @@ function checkFiltering(target, origin, piece, boardConfig, basicMoveObj) {
             pawnMovedTwo: pawnMovedTwo,
             castleEvent: castleEvent,
             enPassantEvent: enPassantEvent,
-            kingInCheck: kingInCheck,
+            dealtCheck: dealtCheck,
             promotionEvent: promotionEvent,
         };
     }

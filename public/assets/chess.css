@@ -117,6 +117,22 @@ img {
     background-color: rgba(6, 214, 158, 0.396);
 }
 
+.light-tile-check {
+    background: radial-gradient(
+        35px circle at 30px 30px,
+        rgba(202, 29, 6, 0.644) 33%,
+        #fffff0
+    );
+}
+
+.dark-tile-check {
+    background: radial-gradient(
+        35px circle at 30px 30px,
+        rgba(202, 29, 6, 0.774) 49%,
+        #118ab2
+    );
+}
+
 /* rounding those edges! */
 
 #a8-filter {

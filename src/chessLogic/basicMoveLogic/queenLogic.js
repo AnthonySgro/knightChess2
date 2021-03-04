@@ -7,6 +7,11 @@ function queenLogic(target, origin, piece, boardConfig) {
     //we are going to find the direction by making one true
     let queenDirection = "";
 
+    //this is to handle our queening (a new queen won't have an origin square)
+    if (!origin) {
+        return validMove;
+    }
+
     //find what direction we are going in
     for (let i = 1; i <= 8; i++) {
         switch (target) {
