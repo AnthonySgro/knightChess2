@@ -5,7 +5,14 @@ import ChessPiece from "../chessPiece/chessPiece.jsx";
 import { useDrop } from "react-dnd";
 
 //if piece, render the react component for it, else, just show a placeholder
-function renderPiece(piece, piecePresent, imageFile, numberCoords, playerTurn) {
+function renderPiece(
+    piece,
+    piecePresent,
+    imageFile,
+    numberCoords,
+    playerTurn,
+    rotation,
+) {
     if (piecePresent) {
         return (
             <ChessPiece
@@ -15,6 +22,8 @@ function renderPiece(piece, piecePresent, imageFile, numberCoords, playerTurn) {
                 numberCoords={numberCoords}
                 piece={piece}
                 imageFile={imageFile}
+                //rotate
+                rotation={rotation}
             />
         );
     } else {
@@ -32,6 +41,7 @@ function Tile(props) {
         rowStartColor,
         lastMoveSquares,
         playerTurn,
+        rotation,
     } = props;
 
     //gets coordinate pairs
@@ -136,6 +146,7 @@ function Tile(props) {
                 imageFile,
                 numberCoords,
                 playerTurn,
+                rotation,
             )}
         </div>
     );

@@ -41,9 +41,10 @@ class ChessApp extends Component {
                     ],
                 },
             ],
-            //initializes game to move 0 and white-to-move
+            //initializes game to move 0 and white-to-move and board rotation
             stepNumber: 0,
             whiteIsNext: true,
+            rotation: 0,
         };
 
         //dragging props
@@ -59,11 +60,13 @@ class ChessApp extends Component {
         this.setUpBoard = this.setUpBoard.bind(this);
         this.moveBack = this.moveBack.bind(this);
         this.moveForward = this.moveForward.bind(this);
+        this.rotateBoard = this.rotateBoard.bind(this);
 
         //pieces
         this.whitePieces = [];
         this.blackPieces = [];
         this.allPieces = [];
+
         //remembers
         this.lastMoveSquares = [];
     }
@@ -574,25 +577,12 @@ class ChessApp extends Component {
         }
     }
 
-    reverseBoard(e) {
-        // let allTiles = document.querySelectorAll(".tile");
-        // for (let col = 0; col < 8; col++) {
-        //     for (let row = 0; row < 8; row++) {
-        //         //change id's
-        //         const numberCoords = [col, row];
-        //         const chessCoords = convertNotation(numberCoords).join("");
-        //         allTiles.forEach((tile) => {
-        //             if (tile.id === chessCoords) {
-        //                 const thisChessCoords = tile.id;
-        //                 const newNum = convertNotation(thisChessCoords);
-        //                 const adjust = [7 - newNum[0], 7 - newNum[1]];
-        //                 const newChessCoords = convertNotation(adjust).join("");
-        //                 tile.id = newChessCoords;
-        //                 tile.parentElement.id = `${newChessCoords}-filter`;
-        //             }
-        //         });
-        //     }
-        // }
+    rotateBoard(deg) {
+        const { rotation } = this.state;
+        const newDegrees = (rotation + 180) % 360;
+        this.setState({
+            rotation: newDegrees,
+        });
     }
 
     render() {
@@ -606,6 +596,7 @@ class ChessApp extends Component {
             <div id="chess-app" className="major-comp">
                 <div id="interface-container" className="major-comp">
                     <Chessboard
+                        rotation={this.state.rotation}
                         boardConfig={current.boardConfig}
                         playerTurn={this.state.whiteIsNext}
                         lastMoveSquares={this.lastMoveSquares}
@@ -619,7 +610,7 @@ class ChessApp extends Component {
                         history={history}
                         moveForward={this.moveForward}
                         moveBack={this.moveBack}
-                        reverseBoard={this.reverseBoard}
+                        rotateBoard={this.rotateBoard}
                     />
                 </div>
             </div>

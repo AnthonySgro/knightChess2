@@ -38,6 +38,8 @@ class TileFilter extends Component {
                     onDragEnter={this.props.onDragEnter}
                     onDragLeave={this.props.onDragLeave}
                     onDragStart={this.props.onDragStart}
+                    //rotate
+                    rotation={this.props.rotation}
                 />
             </div>
         );

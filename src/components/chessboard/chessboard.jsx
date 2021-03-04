@@ -22,13 +22,21 @@ class Chessboard extends Component {
                 onDragEnter={this.props.onDragEnter}
                 onDragLeave={this.props.onDragLeave}
                 onDragStart={this.props.onDragStart}
+                //rotate
+                rotation={this.props.rotation}
             />
         );
     }
 
     render() {
+        console.log(this.props.rotation);
+
+        const { rotation } = this.props;
         return (
-            <div id="chessboard-backdrop">
+            <div
+                id="chessboard-backdrop"
+                style={{ transform: `rotate(${rotation}deg)` }}
+            >
                 {this.renderRow(0, true)}
                 {this.renderRow(1, false)}
                 {this.renderRow(2, true)}

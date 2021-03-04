@@ -17,6 +17,7 @@ img {
     height: auto;
     width: auto;
     display: block;
+    transform: rotate(0deg);
 }
 
 #history-container {
@@ -52,6 +53,7 @@ img {
     border-radius: 0.4rem;
     display: flex;
     flex-direction: column;
+    transform: rotate(0deg);
 }
 
 .row {

@@ -1,6 +1,9 @@
 import React, { Component } from "react";
 
 class UserInterface extends Component {
+    constructor() {
+        super();
+    }
     render() {
         const { turn, history } = this.props;
         const turnInfo = turn ? "White's Turn" : "Black's Turn";
@@ -9,7 +12,7 @@ class UserInterface extends Component {
                 <button
                     className="greenbtn"
                     id="init-game"
-                    onClick={() => this.props.reverseBoard(event)}
+                    onClick={() => this.props.rotateBoard()}
                 >
                     Swap Side
                 </button>
