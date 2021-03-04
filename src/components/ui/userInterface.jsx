@@ -9,7 +9,7 @@ class UserInterface extends Component {
                 <button
                     className="greenbtn"
                     id="init-game"
-                    onClick={() => this.props.setUpBoard()}
+                    onClick={() => this.props.reverseBoard(event)}
                 >
                     Swap Side
                 </button>

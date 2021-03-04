@@ -88,6 +88,11 @@ class ChessApp extends Component {
         const targetTile = document.querySelector(`#${to}`);
         targetTile.classList.remove("dragged-over");
 
+        //don't do anything if you're setting the piece down
+        if (from === to) {
+            return;
+        }
+
         //if user is not on the most up-to-date move, don't continue
         const gameHistory = this.state.history;
         if (this.state.stepNumber !== gameHistory.length - 1) {
@@ -99,11 +104,6 @@ class ChessApp extends Component {
 
         //resets dragging piece
         this.draggingPiece = {};
-
-        //if piece didn't move, don't do anything
-        // if (to === from) {
-        //     return;
-        // }
 
         //**everything before is guaranteed to happen**
 
@@ -216,6 +216,53 @@ class ChessApp extends Component {
         }
 
         //check for checkmate
+        let checkmate = true;
+        for (let col = 0; col < 8; col++) {
+            for (let row = 0; row < 8; row++) {
+                const enemyPiece = finalResult.finalBoardConfig[col][row];
+                if (
+                    !isEmpty(enemyPiece) &&
+                    enemyPiece.color !== movedPiece.color
+                ) {
+                    for (let col2 = 0; col2 < 8; col2++) {
+                        for (let row2 = 0; row2 < 8; row2++) {
+                            const someId = convertNotation([
+                                col2,
+                                7 - row2,
+                            ]).join("");
+                            //console.log(someId);
+                            const basicMoveObj = chess(
+                                someId,
+                                enemyPiece.flatChessCoords,
+                                enemyPiece,
+                                finalResult.finalBoardConfig,
+                            );
+
+                            if (basicMoveObj.validMove) {
+                                const finalMoveObj = checkFiltering(
+                                    someId,
+                                    enemyPiece.flatChessCoords,
+                                    enemyPiece,
+                                    finalResult.finalBoardConfig,
+                                    basicMoveObj,
+                                );
+
+                                if (finalMoveObj.validMove) {
+                                    checkmate = false;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        if (checkmate) {
+            const chessboard = document.querySelector("#chessboard-backdrop");
+            const userFeedback = document.querySelector(".user-feedback");
+            chessboard.style.filter = "grayscale(100%)";
+            userFeedback.innerHTML = "Checkmate!";
+        }
 
         //if check, color appropriate squares
         if (dealtCheck) {
@@ -527,6 +574,27 @@ class ChessApp extends Component {
         }
     }
 
+    reverseBoard(e) {
+        // let allTiles = document.querySelectorAll(".tile");
+        // for (let col = 0; col < 8; col++) {
+        //     for (let row = 0; row < 8; row++) {
+        //         //change id's
+        //         const numberCoords = [col, row];
+        //         const chessCoords = convertNotation(numberCoords).join("");
+        //         allTiles.forEach((tile) => {
+        //             if (tile.id === chessCoords) {
+        //                 const thisChessCoords = tile.id;
+        //                 const newNum = convertNotation(thisChessCoords);
+        //                 const adjust = [7 - newNum[0], 7 - newNum[1]];
+        //                 const newChessCoords = convertNotation(adjust).join("");
+        //                 tile.id = newChessCoords;
+        //                 tile.parentElement.id = `${newChessCoords}-filter`;
+        //             }
+        //         });
+        //     }
+        // }
+    }
+
     render() {
         const history = this.state.history;
         const current = history[this.state.stepNumber];
@@ -551,7 +619,7 @@ class ChessApp extends Component {
                         history={history}
                         moveForward={this.moveForward}
                         moveBack={this.moveBack}
-                        setUpBoard={this.setUpBoard}
+                        reverseBoard={this.reverseBoard}
                     />
                 </div>
             </div>
