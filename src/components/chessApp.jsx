@@ -9,6 +9,7 @@ import {
     playMoveSound,
     playCaptureSound,
     playOutOfBoundSound,
+    playEndGame,
 } from "../helper-functions/sounds";
 import chess from "../chessLogic/chess";
 import { getPieceWithDom } from "../helper-functions/getPieceWithDom";
@@ -85,7 +86,6 @@ class ChessApp extends Component {
     }
 
     //takes in a unique pieceId, origin, and dropped square and returns an updated history entry
-    //will eventually use logic to parse out incorrect moves but we are just tryna work rn
     moveHandler(oldBoardConfig, pieceId, from, to) {
         //remove filter of target tile
         const targetTile = document.querySelector(`#${to}`);
@@ -166,13 +166,41 @@ class ChessApp extends Component {
             }
         }
 
-        //promotion (only to queen rn)
+        //promotion (including underpromotion)
         let promo = {};
         if (to[1] === "1" && movedPiece.name === "Pawn") {
-            promo = new Queen(this.props, "q");
+            switch (this.props.promotion) {
+                case "Q":
+                    promo = new Queen(this.props, "q");
+                    break;
+                case "N":
+                    promo = new Knight(this.props, "n");
+                    break;
+                case "R":
+                    promo = new Rook(this.props, "r");
+                    promo.hasMoved = true;
+                    break;
+                case "B":
+                    promo = new Bishop(this.props, "b");
+                    break;
+            }
             this.blackPieces.push(promo);
         } else if (to[1] === "8" && movedPiece.name === "Pawn") {
-            promo = new Queen(this.props, "Q");
+            switch (this.props.promotion) {
+                case "Q":
+                    promo = new Queen(this.props, "Q");
+                    break;
+                case "N":
+                    promo = new Knight(this.props, "N");
+                    break;
+                case "R":
+                    promo = new Rook(this.props, "R");
+                    promo.hasMoved = true;
+                    break;
+                case "B":
+                    promo = new Bishop(this.props, "B");
+                    break;
+            }
         }
 
         //if promoted, update board
@@ -189,12 +217,16 @@ class ChessApp extends Component {
             movedPiece.castlingAvailable = false;
         } else if (movedPiece.name === "Pawn") {
             movedPiece.moveTwoAvailable = false;
+        } else if (movedPiece.name === "Rook") {
+            movedPiece.hasMoved = true;
         }
 
         //pawn move two tiles handler
         if (finalResult.pawnMovedTwo) {
             movedPiece.vulnerableToEnPassant = true;
         }
+
+        let endGame = false;
 
         //check for enemy king in check
         let dealtCheck = false;
@@ -219,7 +251,7 @@ class ChessApp extends Component {
         }
 
         //check for checkmate
-        let checkmate = true;
+        let noMoves = true;
         for (let col = 0; col < 8; col++) {
             for (let row = 0; row < 8; row++) {
                 const enemyPiece = finalResult.finalBoardConfig[col][row];
@@ -251,7 +283,7 @@ class ChessApp extends Component {
                                 );
 
                                 if (finalMoveObj.validMove) {
-                                    checkmate = false;
+                                    noMoves = false;
                                 }
                             }
                         }
@@ -260,11 +292,16 @@ class ChessApp extends Component {
             }
         }
 
-        if (checkmate) {
-            const chessboard = document.querySelector("#chessboard-backdrop");
-            const userFeedback = document.querySelector(".user-feedback");
-            chessboard.style.filter = "grayscale(100%)";
+        //checkmate
+        const userFeedback = document.querySelector(".user-feedback");
+        if (noMoves && dealtCheck) {
+            endGame = true;
             userFeedback.innerHTML = "Checkmate!";
+            //stalemate
+        } else if (noMoves) {
+            endGame = true;
+            const userFeedback = document.querySelector(".user-feedback");
+            userFeedback.innerHTML = "Stalemate!";
         }
 
         //if check, color appropriate squares
@@ -284,15 +321,23 @@ class ChessApp extends Component {
 
         //sounds
         const placeholder = "http://localhost:9000/images/placeholder.png";
-        const validDot = "http://localhost:9000/images/validMoveDot.png";
         const imageFileOfTarget = targetTile.firstChild.src;
-        if (
-            imageFileOfTarget === placeholder ||
-            imageFileOfTarget === validDot
-        ) {
-            playMoveSound();
+        if (endGame) {
+            playEndGame();
+            const chessboard = document.querySelector("#chessboard-backdrop");
+            const newGameBtn = document.querySelector("#newGame-btn");
+            chessboard.style.filter = "grayscale(100%)";
+            newGameBtn.style.visibility = "visible";
         } else {
-            playCaptureSound();
+            console.log();
+            if (
+                imageFileOfTarget === placeholder &&
+                !finalResult.enPassantEvent
+            ) {
+                playMoveSound();
+            } else {
+                playCaptureSound();
+            }
         }
 
         //stores the squares involved in last move for a moment
@@ -340,7 +385,7 @@ class ChessApp extends Component {
                     const tileElement = document.querySelector(`#${tile}`);
                     let finalResult = { validMove: false };
 
-                    //sees if the move is a basic move of the piece
+                    // sees if the move is a basic move of the piece
                     let basicResult = chess(
                         tile,
                         originSquare,
@@ -460,6 +505,29 @@ class ChessApp extends Component {
     }
 
     setUpBoard() {
+        const chessboard = document.querySelector("#chessboard-backdrop");
+        const newGameBtn = document.querySelector("#newGame-btn");
+        const userFeedback = document.querySelector(".user-feedback");
+        chessboard.style.filter = "grayscale(0%)";
+        newGameBtn.style.visibility = "hidden";
+        userFeedback.innerHTML = "";
+
+        //reset styles
+        for (let col = 0; col < 8; col++) {
+            for (let row = 0; row < 8; row++) {
+                const tile = convertNotation([col, row]).join("");
+                const tileElement = document.querySelector(`#${tile}`);
+                tileElement.classList.remove(
+                    "involved-in-last-move-tile-light-square",
+                );
+                tileElement.classList.remove(
+                    "involved-in-last-move-tile-dark-square",
+                );
+                tileElement.parentElement.classList.remove("light-tile-check");
+                tileElement.parentElement.classList.remove("dark-tile-check");
+            }
+        }
+
         let R1 = new Rook(this.props, "R");
         let N1 = new Knight(this.props, "N");
         let B1 = new Bishop(this.props, "B");
@@ -526,13 +594,13 @@ class ChessApp extends Component {
 
         const boardConfig2 = [
             [{}, {}, {}, {}, k1, {}, {}, {}],
-            [{}, {}, p1, p2, p3, p4, {}, {}],
             [{}, {}, {}, {}, {}, {}, {}, {}],
             [{}, {}, {}, {}, {}, {}, {}, {}],
             [{}, {}, {}, {}, {}, {}, {}, {}],
             [{}, {}, {}, {}, {}, {}, {}, {}],
-            [{}, {}, {}, P3, P2, P1, {}, {}],
-            [{}, {}, {}, {}, K1, {}, Q1, {}],
+            [{}, {}, {}, {}, {}, {}, {}, {}],
+            [{}, {}, {}, {}, {}, {}, {}, {}],
+            [{}, {}, {}, {}, K1, B2, N2, R2],
         ];
 
         this.whitePieces = whiteCollection;
@@ -588,7 +656,6 @@ class ChessApp extends Component {
     render() {
         const history = this.state.history;
         const current = history[this.state.stepNumber];
-
         console.log(current);
 
         //displays whatever we set 'current' to
@@ -611,6 +678,8 @@ class ChessApp extends Component {
                         moveForward={this.moveForward}
                         moveBack={this.moveBack}
                         rotateBoard={this.rotateBoard}
+                        newGame={this.setUpBoard}
+                        openRules={this.props.openRules}
                     />
                 </div>
             </div>

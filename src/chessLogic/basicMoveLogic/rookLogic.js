@@ -35,7 +35,6 @@ function rookLogic(target, origin, piece, boardConfig) {
 
     //if valid move...
     if (validRookMoves.includes(target)) {
-        piece.hasMoved = true;
         validMove = true;
     }
 

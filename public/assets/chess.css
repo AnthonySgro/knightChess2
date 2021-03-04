@@ -154,6 +154,23 @@ img {
 }
 
 /* USER INTERFACE */
+#user-interface {
+    display: flex;
+    flex-direction: column;
+}
+
+#user-interface > * {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-evenly;
+    align-items: center;
+    margin-top: 0.6rem;
+}
+
+#placeholder-btn {
+    visibility: hidden;
+}
+
 .greenbtn {
     box-shadow: 0 7px 10px -9px rgba(0, 0, 0, 0.62);
     background-color: #06d6a0;
@@ -162,8 +179,6 @@ img {
     color: #f1faee;
     outline: none;
     padding: 5px 10px;
-    margin: 10px;
-    width: 20%;
 }
 
 .redbtn {
@@ -175,7 +190,7 @@ img {
     outline: none;
     padding: 5px 10px;
     margin: 0px;
-    width: 10%;
+    /* width: 10%; */
 }
 
 #phase-information,
@@ -186,12 +201,17 @@ img {
     border-radius: 12px;
     color: black;
     outline: none;
-    padding: 0px 0px;
-    margin: 10px;
-    width: 20%;
+    padding: 2px 8px;
     display: inline-block;
     overflow-wrap: break-word;
     font-size: 8px;
+}
+
+.history-btn {
+    width: 47%;
+}
+.history-btn:nth-child(2) {
+    margin-left: 0.2rem;
 }
 
 .user-feedback {
@@ -201,27 +221,20 @@ img {
     border-radius: 12px;
     color: black;
     outline: none;
-    padding: 0px 0px;
-    margin: 0px;
-    height: 40px;
-    width: 40%;
+    padding: 10px 10px;
+    margin-bottom: 0.5rem;
+    height: 32px;
+    width: 200px;
     display: inline-block;
     overflow-wrap: break-word;
     font-size: 8px;
     text-align: center;
     vertical-align: middle;
-    line-height: 35px;
+    line-height: 30px;
 }
 
 #init-game {
     display: inline-block;
-}
-
-.btn:hover,
-.btn:focus {
-    transition: background-color 200ms ease-in-out;
-    background-color: #05a77c;
-    cursor: pointer;
 }
 
 .greenbtn:hover {
@@ -251,10 +264,6 @@ img {
 }
 
 #rules-btn {
-    position: absolute;
-    top: 30px;
-    left: 30px;
-    width: 8%;
 }
 
 #close-btn {
@@ -280,51 +289,85 @@ img {
     transform: translateX(30px);
 }
 
-#history-box {
-    border-radius: 10px;
-    position: absolute;
-    top: 4.7vh;
-    right: 30px;
-    background-color: #047758;
-    width: 23%;
-    min-height: 80vh;
-    padding: 20px;
-    display: flex;
-    flex-direction: column;
+h2 {
+    margin-bottom: 0.5rem;
 }
 
-#clocks {
+#chat-history {
+    color: black;
+    background-color: #f1f1f1;
+    height: 200px;
+    border-radius: 1rem;
+    overflow: auto;
+    transform: rotate(180deg);
+    direction: rtl;
+    margin-bottom: 0.5rem;
+}
+
+.message {
+    font-size: small;
+    transform: rotate(180deg);
+    direction: ltr;
+    border-radius: inherit;
+}
+
+.internal-msg {
+    padding: 0rem 1rem;
+}
+
+.chat-name {
+    font-weight: bold;
+}
+
+.chat-msg {
+}
+
+#msg-container {
     display: flex;
     flex-direction: row;
     justify-content: space-evenly;
+    align-items: center;
 }
 
-#placeholder {
-    flex: 2;
-}
-
-.clock {
-    flex: 3;
-    font-size: xx-large;
-}
-
-.moveNum {
-    margin: 0.5rem;
-}
-
-#moveNumber {
-    margin-top: 1rem;
-}
-
-#white-history,
-#black-history {
-    margin-top: 1rem;
-}
-
-#history {
-    display: flex;
-    justify-content: space-evenly;
+#submit-msg {
     position: relative;
+    bottom: 0.5rem;
+    border-radius: 1rem;
+    height: 2.1rem;
+}
+
+#msg {
+    border-radius: 10px;
+    width: 70%;
+    padding: 15px;
+    margin: 5px 0 22px 0;
+    border: none;
+    background: #f1f1f1;
+    resize: none;
+    min-height: 1px;
+}
+
+.settings-container:not(:first-child) {
     margin-top: 1rem;
-    background-color: #073b4c;
+}
+
+#underpromotion-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    margin-top: 2rem;
+}
+
+#promolabel {
+    font-size: large;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+}
+
+#underpromotion {
+    align-self: flex-start;
+    border-radius: 5px;
+    padding: 0rem 0.5rem;
+    box-shadow: 0 7px 10px -9px rgba(0, 0, 0, 0.62);
+    background-color: #f1f1f1;
 }

@@ -115,14 +115,6 @@ function Tile(props) {
                     tileElement.parentNode.classList.remove(
                         "moveable-capturable-parent",
                     );
-
-                    if (
-                        tileElement.firstChild.src ===
-                        "http://localhost:9000/images/validMoveDot.png"
-                    ) {
-                        tileElement.firstChild.src =
-                            "http://localhost:9000/images/placeholder.png";
-                    }
                 }
             }
         },

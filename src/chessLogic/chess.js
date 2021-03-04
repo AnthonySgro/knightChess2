@@ -47,11 +47,9 @@ function chess(target, origin, piece, boardConfig) {
             break;
         case "Rook":
             validMove = rookLogic(target, origin, piece, boardConfig);
-
             break;
         case "Queen":
             validMove = queenLogic(target, origin, piece, boardConfig);
-
             break;
         case "King":
             const kingMoveObject = kingLogic(
@@ -60,6 +58,7 @@ function chess(target, origin, piece, boardConfig) {
                 piece,
                 boardConfig,
             );
+
             validMove = kingMoveObject.validMove;
             castleEvent = kingMoveObject.castleEvent;
             break;

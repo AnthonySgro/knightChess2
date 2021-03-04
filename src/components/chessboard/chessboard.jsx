@@ -29,8 +29,6 @@ class Chessboard extends Component {
     }
 
     render() {
-        console.log(this.props.rotation);
-
         const { rotation } = this.props;
         return (
             <div

@@ -100,6 +100,7 @@ function checkFiltering(target, origin, piece, boardConfig, basicMoveObj) {
                 let castleChecker2;
 
                 const { squaresInvolved, castleMove } = castleEvent;
+
                 //if castling, we have to check more than just the king's position
                 if (castleMove) {
                     //makes sure you don't castle through or out of check
@@ -109,14 +110,12 @@ function checkFiltering(target, origin, piece, boardConfig, basicMoveObj) {
                         cycleTilePiece,
                         simulBoardConfig,
                     );
-
                     castleChecker2 = chess(
                         squaresInvolved[1],
                         cycleTilePiece.flatChessCoords,
                         cycleTilePiece,
                         simulBoardConfig,
                     );
-
                     //takes away castling if you are going through a check
                     if (castleChecker1.validMove || castleChecker2.validMove) {
                         validMove = false;
