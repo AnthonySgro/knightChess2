@@ -11,7 +11,7 @@ import {
     playOutOfBoundSound,
     playEndGame,
 } from "../helper-functions/sounds";
-import chess from "../chessLogic/chess";
+import basicMove from "../chessLogic/basicMove";
 import { getPieceWithDom } from "../helper-functions/getPieceWithDom";
 import checkFiltering from "../chessLogic/checkFiltering.js";
 import updatePieceCoords from "../helper-functions/updatePieceCoords";
@@ -111,7 +111,7 @@ class ChessApp extends Component {
         //**everything before is guaranteed to happen**
 
         //sees if the move is a basic move of the piece
-        const basicResult = chess(to, from, movedPiece, oldBoardConfig);
+        const basicResult = basicMove(to, from, movedPiece, oldBoardConfig);
 
         //if invalid basic move, do not proceed and play sound
         if (!basicResult.validMove) {
@@ -120,7 +120,7 @@ class ChessApp extends Component {
         }
 
         //filters that move to see if it leaves king in check
-        let finalResult = checkFiltering(
+        let moveData = checkFiltering(
             to,
             from,
             movedPiece,
@@ -128,8 +128,18 @@ class ChessApp extends Component {
             basicResult,
         );
 
+        //move data object
+        let {
+            validMove,
+            newBoardConfig,
+            pawnMovedTwo,
+            castleEvent,
+            enPassantEvent,
+            promotionEvent,
+        } = moveData;
+
         //if move would leave king in check, do not proceed
-        if (!finalResult.validMove) {
+        if (!validMove) {
             return;
         }
 
@@ -148,7 +158,7 @@ class ChessApp extends Component {
                 tileElement.parentElement.classList.remove("light-tile-check");
                 tileElement.parentElement.classList.remove("dark-tile-check");
 
-                const piece = finalResult.finalBoardConfig[col][row];
+                const piece = newBoardConfig[col][row];
                 if (!isEmpty(piece)) {
                     //every move, every piece is no longer vulnerable to enpassant
                     if (piece.name === "Pawn") {
@@ -207,7 +217,7 @@ class ChessApp extends Component {
         if (!isEmpty(promo)) {
             const coords = convertNotation(to);
             const id = boardStateConverter(coords);
-            finalResult.finalBoardConfig[id[0]][id[1]] = promo;
+            newBoardConfig[id[0]][id[1]] = promo;
             updatePieceCoords(promo, to);
             this.allPieces.push(promo);
         }
@@ -222,7 +232,7 @@ class ChessApp extends Component {
         }
 
         //pawn move two tiles handler
-        if (finalResult.pawnMovedTwo) {
+        if (pawnMovedTwo) {
             movedPiece.vulnerableToEnPassant = true;
         }
 
@@ -233,13 +243,13 @@ class ChessApp extends Component {
         for (let col = 0; col < 8; col++) {
             for (let row = 0; row < 8; row++) {
                 //cycles through all same-color pieces
-                const cycleTilePiece = finalResult.finalBoardConfig[col][row];
+                const cycleTilePiece = newBoardConfig[col][row];
                 if (cycleTilePiece.color === movedPiece.color) {
-                    const dealCheckDetection = chess(
+                    const dealCheckDetection = basicMove(
                         oppKing.flatChessCoords,
                         cycleTilePiece.flatChessCoords,
                         cycleTilePiece,
-                        finalResult.finalBoardConfig,
+                        newBoardConfig,
                     );
 
                     //if enemy king is within a basic movement, it's a check
@@ -254,7 +264,7 @@ class ChessApp extends Component {
         let noMoves = true;
         for (let col = 0; col < 8; col++) {
             for (let row = 0; row < 8; row++) {
-                const enemyPiece = finalResult.finalBoardConfig[col][row];
+                const enemyPiece = newBoardConfig[col][row];
                 if (
                     !isEmpty(enemyPiece) &&
                     enemyPiece.color !== movedPiece.color
@@ -266,11 +276,11 @@ class ChessApp extends Component {
                                 7 - row2,
                             ]).join("");
                             //console.log(someId);
-                            const basicMoveObj = chess(
+                            const basicMoveObj = basicMove(
                                 someId,
                                 enemyPiece.flatChessCoords,
                                 enemyPiece,
-                                finalResult.finalBoardConfig,
+                                newBoardConfig,
                             );
 
                             if (basicMoveObj.validMove) {
@@ -278,7 +288,7 @@ class ChessApp extends Component {
                                     someId,
                                     enemyPiece.flatChessCoords,
                                     enemyPiece,
-                                    finalResult.finalBoardConfig,
+                                    newBoardConfig,
                                     basicMoveObj,
                                 );
 
@@ -316,9 +326,6 @@ class ChessApp extends Component {
             }
         }
 
-        //get the new board
-        let newBoardConfiguration = finalResult.finalBoardConfig;
-
         //sounds
         const placeholder = "http://localhost:9000/images/placeholder.png";
         const imageFileOfTarget = targetTile.firstChild.src;
@@ -329,11 +336,7 @@ class ChessApp extends Component {
             chessboard.style.filter = "grayscale(100%)";
             newGameBtn.style.visibility = "visible";
         } else {
-            console.log();
-            if (
-                imageFileOfTarget === placeholder &&
-                !finalResult.enPassantEvent
-            ) {
+            if (imageFileOfTarget === placeholder && !enPassantEvent) {
                 playMoveSound();
             } else {
                 playCaptureSound();
@@ -344,7 +347,7 @@ class ChessApp extends Component {
         this.lastMoveSquares = [from, to];
 
         //snag our board configuration returned by chess.js
-        let boardConfig = newBoardConfiguration;
+        let boardConfig = newBoardConfig;
 
         //increment move
         const newStepNumber = this.state.stepNumber + 1;
@@ -386,7 +389,7 @@ class ChessApp extends Component {
                     let finalResult = { validMove: false };
 
                     // sees if the move is a basic move of the piece
-                    let basicResult = chess(
+                    let basicResult = basicMove(
                         tile,
                         originSquare,
                         this.draggingPiece,

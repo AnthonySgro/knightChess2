@@ -6,7 +6,7 @@ import pawnLogic from "./basicMoveLogic/pawnLogic";
 import kingLogic from "./basicMoveLogic/kingLogic";
 
 //returns an object that tells us information about the turn
-function chess(target, origin, piece, boardConfig) {
+function basicMove(target, origin, piece, boardConfig) {
     if (piece === undefined) {
         return { validMove: false };
     }
@@ -74,4 +74,4 @@ function chess(target, origin, piece, boardConfig) {
     };
 }
 
-export default chess;
+export default basicMove;

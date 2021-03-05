@@ -5,7 +5,6 @@ import { DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 
 import Sidebar from "./components/sidebar/sidebar.jsx";
-import History from "./components/history/history.jsx";
 
 class GamePage extends Component {
     constructor() {

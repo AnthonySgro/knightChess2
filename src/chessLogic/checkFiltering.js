@@ -1,7 +1,7 @@
 import convertNotation from "../helper-functions/notationConverter";
 import boardStateConverter from "../helper-functions/boardStateConverter";
 import { cloneDeep, isEmpty } from "lodash";
-import chess from "./chess";
+import basicMove from "./basicMove";
 import castleHandler from "./basicMoveLogic/castleHandler";
 import positionValidator from "./positionValidator";
 import { Queen, Rook, Knight, Bishop } from "../pieces/allPieceExport.jsx";
@@ -16,7 +16,6 @@ function checkFiltering(target, origin, piece, boardConfig, basicMoveObj) {
     const castleEvent = basicMoveObj.castleEvent;
     const enPassantEvent = basicMoveObj.enPassantEvent;
     const promotionEvent = basicMoveObj.pawnPromotionEvent;
-    let dealtCheck = false;
 
     //get my coordinates prepped to work with the history object
     const toNumCoords = convertNotation([target[0], target[1]]);
@@ -90,7 +89,7 @@ function checkFiltering(target, origin, piece, boardConfig, basicMoveObj) {
                 cycleTilePiece.color !== piece.color
             ) {
                 //check to see if it is is a basic move to attack our king
-                const result = chess(
+                const result = basicMove(
                     thisKing.flatChessCoords,
                     cycleTilePiece.flatChessCoords,
                     cycleTilePiece,
@@ -104,13 +103,13 @@ function checkFiltering(target, origin, piece, boardConfig, basicMoveObj) {
                 //if castling, we have to check more than just the king's position
                 if (castleMove) {
                     //makes sure you don't castle through or out of check
-                    castleChecker1 = chess(
+                    castleChecker1 = basicMove(
                         squaresInvolved[0],
                         cycleTilePiece.flatChessCoords,
                         cycleTilePiece,
                         simulBoardConfig,
                     );
-                    castleChecker2 = chess(
+                    castleChecker2 = basicMove(
                         squaresInvolved[1],
                         cycleTilePiece.flatChessCoords,
                         cycleTilePiece,
@@ -151,17 +150,15 @@ function checkFiltering(target, origin, piece, boardConfig, basicMoveObj) {
                 direction: "",
             },
             enPassantEvent: false,
-            dealtCheck: false,
             promotionEvent: false,
         };
     } else {
         return {
             validMove: validMove,
-            finalBoardConfig: simulBoardConfig,
+            newBoardConfig: simulBoardConfig,
             pawnMovedTwo: pawnMovedTwo,
             castleEvent: castleEvent,
             enPassantEvent: enPassantEvent,
-            dealtCheck: dealtCheck,
             promotionEvent: promotionEvent,
         };
     }
