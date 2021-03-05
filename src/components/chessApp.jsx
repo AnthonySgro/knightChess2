@@ -115,8 +115,6 @@ class ChessApp extends Component {
         // ** Everything before is guaranteed to happen **
         // ** ***************************************** **
 
-        console.log("hi");
-
         // Sees if the move is a basic move of the piece
         const moveData = chessMove(to, from, movedPiece, oldBoardConfig);
 
@@ -167,17 +165,18 @@ class ChessApp extends Component {
             movedPiece.hasMoved = true;
         }
 
-        // Pawn move two tiles handler
+        // Pawn-move-two-tiles handler
         if (pawnMovedTwo) {
             movedPiece.vulnerableToEnPassant = true;
         }
 
-        //initialize Endgame variable to false
+        // Initialize Endgame variable to false
         let endGame = false;
 
+        // Did we deal check with that move?
         let dealtCheck = check(movedPiece, oppKing, newBoardConfig);
 
-        // Check if someone has a move
+        // Check if opponent has a move
         let noMoves = checkmate(movedPiece, newBoardConfig);
 
         //checkmate
