@@ -30,11 +30,11 @@ class ChessApp extends Component {
     constructor() {
         super();
         this.state = {
-            //tracks the board configuration over time
+            // Tracks the board configuration over time
             history: [
                 {
-                    //this is our board representation
-                    //**CHANGING THIS WILL CHANGE THE OUTPUT**
+                    // This is our board representation
+                    // ** CHANGING THIS WILL CHANGE THE PRESENTATION OF THE BOARD **
                     boardConfig: [
                         [{}, {}, {}, {}, {}, {}, {}, {}],
                         [{}, {}, {}, {}, {}, {}, {}, {}],
@@ -61,8 +61,6 @@ class ChessApp extends Component {
         this.idToPiece = this.idToPiece.bind(this);
         this.moveHandler = this.moveHandler.bind(this);
         this.dragStartHandlerProp = this.dragStartHandler.bind(this);
-        this.dragEnterHandlerProp = this.dragEnterHandler.bind(this);
-        this.dragLeaveHandlerProp = this.dragLeaveHandler.bind(this);
         this.setUpBoard = this.setUpBoard.bind(this);
         this.moveBack = this.moveBack.bind(this);
         this.moveForward = this.moveForward.bind(this);
@@ -90,7 +88,7 @@ class ChessApp extends Component {
         return movedPiece;
     }
 
-    // Takes in a unique pieceId, origin, and dropped square and returns an updated history entry
+    // Executes the moves on the board
     moveHandler(oldBoardConfig, pieceId, from, to) {
         // Remove filter of target tile
         const targetTile = document.querySelector(`#${to}`);
@@ -113,10 +111,13 @@ class ChessApp extends Component {
         // Resets dragging piece
         this.draggingPiece = {};
 
-        //**everything before is guaranteed to happen**
+        // ** ***************************************** **
+        // ** Everything before is guaranteed to happen **
+        // ** ***************************************** **
+
+        console.log("hi");
 
         // Sees if the move is a basic move of the piece
-        //
         const moveData = chessMove(to, from, movedPiece, oldBoardConfig);
 
         // Move data object
@@ -135,7 +136,9 @@ class ChessApp extends Component {
             return;
         }
 
-        // **Everything after only happens if it is a valid move**
+        // ** ******************************************* **
+        // ** Everything after only happens if valid move **
+        // ** ******************************************* **
 
         // Update our moved piece id/coords
         updatePieceCoords(movedPiece, to);
@@ -169,6 +172,7 @@ class ChessApp extends Component {
             movedPiece.vulnerableToEnPassant = true;
         }
 
+        //initialize Endgame variable to false
         let endGame = false;
 
         let dealtCheck = check(movedPiece, oppKing, newBoardConfig);
@@ -238,68 +242,64 @@ class ChessApp extends Component {
         });
     }
 
-    //purely for getting the piece that is being dragged
+    // For fun board styling
     dragStartHandler(e, piece) {
+        // Initialize
         this.draggingPieceMoveable = [];
         this.draggingPiece = piece;
 
+        // Just make sure no glitches happen
         if (isEmpty(piece) || piece === undefined) {
             return;
         }
 
+        // Get reference to current board configuration
         const originSquare = piece.flatChessCoords;
         const history = this.state.history;
         const { boardConfig } = history[this.state.stepNumber];
+
+        // If we are not viewing up-to-date board, return
         if (this.state.stepNumber !== history.length - 1) {
             return;
         }
+
+        // If it isn't your turn, return
+        if (this.draggingPiece.white !== this.state.whiteIsNext) {
+            return;
+        }
+
+        // Cycle through every tile to see valid moves
         for (let col = 0; col < 8; col++) {
             for (let row = 0; row < 8; row++) {
-                //only allow this for whoever's turn it is
-                if (this.draggingPiece.white === this.state.whiteIsNext) {
-                    //cycle through every tile to see valid moves
-                    let tile = convertNotation([col, row]).join("");
-                    const tileElement = document.querySelector(`#${tile}`);
-                    let finalResult = { validMove: false };
+                // Get reference to tile and test move
+                let tile = convertNotation([col, row]).join("");
+                const tileElement = document.querySelector(`#${tile}`);
 
-                    // sees if the move is a basic move of the piece
-                    let basicResult = basicMove(
-                        tile,
-                        originSquare,
-                        this.draggingPiece,
-                        boardConfig,
-                    );
+                let finalResult = chessMove(
+                    tile,
+                    originSquare,
+                    this.draggingPiece,
+                    boardConfig,
+                );
 
-                    if (basicResult.validMove) {
-                        //filters that move to see if it leaves king in check
-                        finalResult = checkFiltering(
-                            tile,
-                            originSquare,
-                            this.draggingPiece,
-                            boardConfig,
-                            basicResult,
-                        );
-
-                        if (finalResult.validMove) {
-                            this.draggingPieceMoveable.push(tileElement);
-                        }
-                    }
+                // If a move to this tile is valid, we will add style to tile
+                if (finalResult.validMove) {
+                    this.draggingPieceMoveable.push(tileElement);
                 }
             }
         }
 
-        //search the valid moves of whatever we are dragging
+        // Search the valid moves of whatever we are dragging
         for (let i = 0; i < this.draggingPieceMoveable.length; i++) {
-            //get the piece
+            // Get reference to piece
             const curElement = this.draggingPieceMoveable[i];
             const tilePiece = getPieceWithDom(curElement, boardConfig);
 
-            //if there's no piece we will style differently
+            // If there's no piece on tile, give green dot
             if (isEmpty(tilePiece)) {
-                // this.draggingPieceMoveable[i].firstChild.src =
-                //     "http://localhost:9000/images/validMoveDot.png";
                 curElement.classList.add("moveable");
             } else {
+                // Else, color the corners
                 if (curElement.parentNode.classList.contains("light-square")) {
                     curElement.classList.add(
                         "moveable-capturable-light-square",
@@ -317,70 +317,7 @@ class ChessApp extends Component {
         }
     }
 
-    //aesthetics for entering a square on drag
-    dragEnterHandler(e) {
-        //stop the DOM from doing dumb things we don't want it to
-        e.stopPropagation();
-        e.preventDefault();
-
-        //figures out if we are dragging a piece
-        const target = e.target.parentNode;
-        const pieceDragging = !isEmpty(this.draggingPiece);
-
-        //current config
-        const history = this.state.history;
-        const current = history[this.state.stepNumber];
-
-        //to fill
-        let correctTurn;
-        let draggingPieceOriginTile;
-        let notOverOrigin;
-        let notSameColor;
-
-        //if we are dragging a piece (correct input), we can set our variables
-        if (pieceDragging) {
-            draggingPieceOriginTile = document.querySelector(
-                `#${this.draggingPiece.flatChessCoords}`,
-            );
-            notOverOrigin = target !== draggingPieceOriginTile;
-            const highlightedPiece = getPieceWithDom(
-                target,
-                current.boardConfig,
-            );
-            notSameColor = highlightedPiece.white !== this.state.whiteIsNext;
-            correctTurn = this.draggingPiece.white === this.state.whiteIsNext;
-        }
-
-        //if we are dragging a piece over something other than its origin square
-        //and it is the correct turn!
-        if (pieceDragging && !!notOverOrigin && correctTurn && notSameColor) {
-            //when we enter a square, we want to edit the tileFilter
-            if (this.draggingPieceMoveable.includes(e.target.parentNode)) {
-                target.classList.add("dragged-over");
-            }
-        }
-    }
-
-    //aesthetics for leaving a square on drag
-    dragLeaveHandler(e) {
-        e.preventDefault();
-
-        const pieceDragging = !isEmpty(this.draggingPiece);
-        let correctTurn;
-
-        //if we are dragging a piece, figure out if it is that player's turn
-        if (pieceDragging) {
-            correctTurn = this.draggingPiece.white === this.state.whiteIsNext;
-        }
-
-        //if it is, we can continue with our aesthetics
-        if (pieceDragging && correctTurn) {
-            const tile = e.target.parentNode;
-            const tileFilter = tile.parentNode;
-            tile.classList.remove("dragged-over");
-        }
-    }
-
+    // Resets board (also custom starting positions)
     setUpBoard() {
         const chessboard = document.querySelector("#chessboard-backdrop");
         const newGameBtn = document.querySelector("#newGame-btn");
@@ -492,7 +429,9 @@ class ChessApp extends Component {
         });
     }
 
+    // Move backwards btn
     moveBack(e) {
+        // Remove stylings on board
         for (let col = 0; col < 8; col++) {
             for (let row = 0; row < 8; row++) {
                 const tile = convertNotation([col, row]).join("");
@@ -507,6 +446,8 @@ class ChessApp extends Component {
                 tileElement.parentElement.classList.remove("dark-tile-check");
             }
         }
+
+        // Decrement step number and set state
         if (this.state.stepNumber > 0) {
             this.setState({
                 stepNumber: this.state.stepNumber - 1,
@@ -514,7 +455,9 @@ class ChessApp extends Component {
         }
     }
 
+    // Move forward btn
     moveForward(e) {
+        // Increment step numbers
         if (this.state.stepNumber < this.state.history.length - 1) {
             this.setState({
                 stepNumber: this.state.stepNumber + 1,
@@ -522,7 +465,9 @@ class ChessApp extends Component {
         }
     }
 
-    rotateBoard(deg) {
+    // Self-explanatory
+    rotateBoard() {
+        // Do a 180
         const { rotation } = this.state;
         const newDegrees = (rotation + 180) % 360;
         this.setState({
@@ -545,8 +490,6 @@ class ChessApp extends Component {
                         playerTurn={this.state.whiteIsNext}
                         lastMoveSquares={this.lastMoveSquares}
                         onMove={this.moveHandler}
-                        onDragEnter={this.dragEnterHandlerProp}
-                        onDragLeave={this.dragLeaveHandlerProp}
                         onDragStart={this.dragStartHandlerProp}
                     />
                     <UserInterface

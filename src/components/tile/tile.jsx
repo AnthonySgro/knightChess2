@@ -128,8 +128,6 @@ function Tile(props) {
             className={tileClasses}
             //drag n drop functions
             ref={drop}
-            onDragEnter={() => props.onDragEnter(event)}
-            onDragLeave={() => props.onDragLeave(event)}
             onDragStart={() => props.onDragStart(event, piece)}
         >
             {renderPiece(

@@ -19,8 +19,6 @@ class Chessboard extends Component {
                 lastMoveSquares={this.props.lastMoveSquares}
                 //dragging/moving functions
                 onMove={this.props.onMove}
-                onDragEnter={this.props.onDragEnter}
-                onDragLeave={this.props.onDragLeave}
                 onDragStart={this.props.onDragStart}
                 //rotate
                 rotation={this.props.rotation}
