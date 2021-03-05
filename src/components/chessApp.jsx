@@ -4,7 +4,7 @@ import React, { Component } from "react";
 import { Pawn, Rook, Knight, Bishop, Queen, King } from "../pieces/allPieceExport.jsx";
 import UserInterface from "./ui/userInterface.jsx";
 import convertNotation from "../helper-functions/notationConverter";
-import { cloneDeep, isEmpty, update } from "lodash";
+import { isEmpty } from "lodash";
 import {
     playMoveSound,
     playCaptureSound,
@@ -15,6 +15,9 @@ import basicMove from "../chessLogic/basicMove";
 import { getPieceWithDom } from "../helper-functions/getPieceWithDom";
 import checkFiltering from "../chessLogic/checkFiltering.js";
 import updatePieceCoords from "../helper-functions/updatePieceCoords";
+import promotion from "../chessLogic/promotionLogic";
+import postMoveBoardSweep from "../helper-functions/postMoveBoardSweep";
+import check from "../chessLogic/checkDetection";
 
 //components
 import Chessboard from "./chessboard/chessboard.jsx";
@@ -85,41 +88,41 @@ class ChessApp extends Component {
         return movedPiece;
     }
 
-    //takes in a unique pieceId, origin, and dropped square and returns an updated history entry
+    // Takes in a unique pieceId, origin, and dropped square and returns an updated history entry
     moveHandler(oldBoardConfig, pieceId, from, to) {
-        //remove filter of target tile
+        // Remove filter of target tile
         const targetTile = document.querySelector(`#${to}`);
         targetTile.classList.remove("dragged-over");
 
-        //don't do anything if you're setting the piece down
+        // Don't do anything if you're setting the piece down
         if (from === to) {
             return;
         }
 
-        //if user is not on the most up-to-date move, don't continue
+        // If user is not on the most up-to-date move, don't continue
         const gameHistory = this.state.history;
         if (this.state.stepNumber !== gameHistory.length - 1) {
             return;
         }
 
-        //get reference to our piece object
+        // Get reference to our piece object
         const movedPiece = this.idToPiece(pieceId);
 
-        //resets dragging piece
+        // Resets dragging piece
         this.draggingPiece = {};
 
         //**everything before is guaranteed to happen**
 
-        //sees if the move is a basic move of the piece
+        // Sees if the move is a basic move of the piece
         const basicResult = basicMove(to, from, movedPiece, oldBoardConfig);
 
-        //if invalid basic move, do not proceed and play sound
+        // If invalid basic move, do not proceed and play sound
         if (!basicResult.validMove) {
             playOutOfBoundSound();
             return;
         }
 
-        //filters that move to see if it leaves king in check
+        // Filters that move to see if it leaves king in check
         let moveData = checkFiltering(
             to,
             from,
@@ -128,7 +131,7 @@ class ChessApp extends Component {
             basicResult,
         );
 
-        //move data object
+        // Move data object
         let {
             validMove,
             newBoardConfig,
@@ -138,82 +141,24 @@ class ChessApp extends Component {
             promotionEvent,
         } = moveData;
 
-        //if move would leave king in check, do not proceed
+        // If move would leave king in check, do not proceed
         if (!validMove) {
+            playOutOfBoundSound();
             return;
         }
 
-        //**everything after only happens if it is a valid move**
+        // **Everything after only happens if it is a valid move**
 
-        //update our moved piece id/coords
+        // Update our moved piece id/coords
         updatePieceCoords(movedPiece, to);
 
-        //get references to all pieces and finds enemy king for dealing check detection
-        let oppKing = {};
-        for (let col = 0; col < 8; col++) {
-            for (let row = 0; row < 8; row++) {
-                //while we're here, take out all check styling
-                const tile = convertNotation([col, row]).join("");
-                const tileElement = document.querySelector(`#${tile}`);
-                tileElement.parentElement.classList.remove("light-tile-check");
-                tileElement.parentElement.classList.remove("dark-tile-check");
+        // Returns enemy king for dealing check detection, also removes styling post move
+        let oppKing = postMoveBoardSweep(movedPiece, newBoardConfig);
 
-                const piece = newBoardConfig[col][row];
-                if (!isEmpty(piece)) {
-                    //every move, every piece is no longer vulnerable to enpassant
-                    if (piece.name === "Pawn") {
-                        piece.vulnerableToEnPassant = false;
-                    }
+        // Promotion (including underpromotion)
+        let promo = promotion(to, movedPiece, this.props.promotion, this.props);
 
-                    //if other king, grab reference to it for check processing
-                    if (
-                        piece.name === "King" &&
-                        piece.color !== movedPiece.color
-                    ) {
-                        oppKing = piece;
-                    }
-                }
-            }
-        }
-
-        //promotion (including underpromotion)
-        let promo = {};
-        if (to[1] === "1" && movedPiece.name === "Pawn") {
-            switch (this.props.promotion) {
-                case "Q":
-                    promo = new Queen(this.props, "q");
-                    break;
-                case "N":
-                    promo = new Knight(this.props, "n");
-                    break;
-                case "R":
-                    promo = new Rook(this.props, "r");
-                    promo.hasMoved = true;
-                    break;
-                case "B":
-                    promo = new Bishop(this.props, "b");
-                    break;
-            }
-            this.blackPieces.push(promo);
-        } else if (to[1] === "8" && movedPiece.name === "Pawn") {
-            switch (this.props.promotion) {
-                case "Q":
-                    promo = new Queen(this.props, "Q");
-                    break;
-                case "N":
-                    promo = new Knight(this.props, "N");
-                    break;
-                case "R":
-                    promo = new Rook(this.props, "R");
-                    promo.hasMoved = true;
-                    break;
-                case "B":
-                    promo = new Bishop(this.props, "B");
-                    break;
-            }
-        }
-
-        //if promoted, update board
+        // If promoted, update board
         if (!isEmpty(promo)) {
             const coords = convertNotation(to);
             const id = boardStateConverter(coords);
@@ -222,7 +167,7 @@ class ChessApp extends Component {
             this.allPieces.push(promo);
         }
 
-        //restrict one-time moves
+        // Restrict one-time moves
         if (movedPiece.name === "King") {
             movedPiece.castlingAvailable = false;
         } else if (movedPiece.name === "Pawn") {
@@ -231,36 +176,16 @@ class ChessApp extends Component {
             movedPiece.hasMoved = true;
         }
 
-        //pawn move two tiles handler
+        // Pawn move two tiles handler
         if (pawnMovedTwo) {
             movedPiece.vulnerableToEnPassant = true;
         }
 
         let endGame = false;
 
-        //check for enemy king in check
-        let dealtCheck = false;
-        for (let col = 0; col < 8; col++) {
-            for (let row = 0; row < 8; row++) {
-                //cycles through all same-color pieces
-                const cycleTilePiece = newBoardConfig[col][row];
-                if (cycleTilePiece.color === movedPiece.color) {
-                    const dealCheckDetection = basicMove(
-                        oppKing.flatChessCoords,
-                        cycleTilePiece.flatChessCoords,
-                        cycleTilePiece,
-                        newBoardConfig,
-                    );
+        let dealtCheck = check(movedPiece, oppKing, newBoardConfig);
 
-                    //if enemy king is within a basic movement, it's a check
-                    if (dealCheckDetection.validMove) {
-                        dealtCheck = true;
-                    }
-                }
-            }
-        }
-
-        //check for checkmate
+        // Check for checkmate
         let noMoves = true;
         for (let col = 0; col < 8; col++) {
             for (let row = 0; row < 8; row++) {
