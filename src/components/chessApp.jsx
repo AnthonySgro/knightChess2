@@ -18,6 +18,8 @@ import updatePieceCoords from "../helper-functions/updatePieceCoords";
 import promotion from "../chessLogic/promotionLogic";
 import postMoveBoardSweep from "../helper-functions/postMoveBoardSweep";
 import check from "../chessLogic/checkDetection";
+import checkmate from "../chessLogic/checkmateDetection";
+import chessMove from "../chessLogic/chessMove";
 
 //components
 import Chessboard from "./chessboard/chessboard.jsx";
@@ -114,22 +116,8 @@ class ChessApp extends Component {
         //**everything before is guaranteed to happen**
 
         // Sees if the move is a basic move of the piece
-        const basicResult = basicMove(to, from, movedPiece, oldBoardConfig);
-
-        // If invalid basic move, do not proceed and play sound
-        if (!basicResult.validMove) {
-            playOutOfBoundSound();
-            return;
-        }
-
-        // Filters that move to see if it leaves king in check
-        let moveData = checkFiltering(
-            to,
-            from,
-            movedPiece,
-            oldBoardConfig,
-            basicResult,
-        );
+        //
+        const moveData = chessMove(to, from, movedPiece, oldBoardConfig);
 
         // Move data object
         let {
@@ -185,47 +173,8 @@ class ChessApp extends Component {
 
         let dealtCheck = check(movedPiece, oppKing, newBoardConfig);
 
-        // Check for checkmate
-        let noMoves = true;
-        for (let col = 0; col < 8; col++) {
-            for (let row = 0; row < 8; row++) {
-                const enemyPiece = newBoardConfig[col][row];
-                if (
-                    !isEmpty(enemyPiece) &&
-                    enemyPiece.color !== movedPiece.color
-                ) {
-                    for (let col2 = 0; col2 < 8; col2++) {
-                        for (let row2 = 0; row2 < 8; row2++) {
-                            const someId = convertNotation([
-                                col2,
-                                7 - row2,
-                            ]).join("");
-                            //console.log(someId);
-                            const basicMoveObj = basicMove(
-                                someId,
-                                enemyPiece.flatChessCoords,
-                                enemyPiece,
-                                newBoardConfig,
-                            );
-
-                            if (basicMoveObj.validMove) {
-                                const finalMoveObj = checkFiltering(
-                                    someId,
-                                    enemyPiece.flatChessCoords,
-                                    enemyPiece,
-                                    newBoardConfig,
-                                    basicMoveObj,
-                                );
-
-                                if (finalMoveObj.validMove) {
-                                    noMoves = false;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
+        // Check if someone has a move
+        let noMoves = checkmate(movedPiece, newBoardConfig);
 
         //checkmate
         const userFeedback = document.querySelector(".user-feedback");
