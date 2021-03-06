@@ -494,7 +494,6 @@ class ChessApp extends Component {
     render() {
         const history = this.state.history;
         const current = history[this.state.stepNumber];
-        console.log(current);
 
         //displays whatever we set 'current' to
         return (
