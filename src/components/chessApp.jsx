@@ -208,7 +208,9 @@ class ChessApp extends Component {
         }
 
         //sounds
-        const placeholder = "http://localhost:9000/images/placeholder.png";
+        const placeholderLocal = "../images/placeholder.png";
+        const placeholderHeroku =
+            "https://knightchess.herokuapp.com/images/placeholder.png";
         const imageFileOfTarget = targetTile.firstChild.src;
         if (endGame) {
             playEndGame();
@@ -217,17 +219,18 @@ class ChessApp extends Component {
             chessboard.style.filter = "grayscale(100%)";
             newGameBtn.style.visibility = "visible";
         } else {
-            if (imageFileOfTarget === placeholder && !enPassantEvent) {
+            // If the tile is empty (or not en passant) we play normal move sound
+            if (imageFileOfTarget === placeholderLocal && !enPassantEvent) {
                 playMoveSound();
             } else {
-                //playCaptureSound();
+                playCaptureSound();
             }
         }
 
-        console.log(imageFileOfTarget);
-        console.log(placeholder);
-        console.log(enPassantEvent);
-        console.log("----");
+        //     (imageFileOfTarget === placeholderLocal ||
+        //         imageFileOfTarget === placeholderHeroku) &&
+        //     !enPassantEvent
+        // )
 
         //stores the squares involved in last move for a moment
         this.lastMoveSquares = [from, to];
