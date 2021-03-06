@@ -43,12 +43,41 @@ class Sidebar extends Component {
                         </div>
                     </form>
                 </div>
+                <div className="settings-container" id="endGame-btn-container">
+                    <label
+                        htmlFor="underpromotion"
+                        id="endgame-label"
+                        className="sidebar-label"
+                    >
+                        End Game Options:
+                    </label>
+                    <div id="btn-container">
+                        <button
+                            className="redbtn"
+                            id="submit-draw"
+                            onClick={() => this.props.offerDraw(event)}
+                        >
+                            Offer Draw
+                        </button>
+                        <button
+                            className="redbtn"
+                            id="submit-resign"
+                            onClick={() => this.props.resign(event)}
+                        >
+                            Resign
+                        </button>
+                    </div>
+                </div>
                 <div
                     className="settings-container"
                     id="underpromotion-container"
                 >
                     {" "}
-                    <label htmlFor="underpromotion" id="promolabel">
+                    <label
+                        htmlFor="underpromotion"
+                        id="promolabel"
+                        className="sidebar-label"
+                    >
                         Advanced Promotion:
                     </label>
                     <select

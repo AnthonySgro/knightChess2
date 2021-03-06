@@ -24,6 +24,7 @@ class Piece {
 
         //unique id
         this.id = "";
+        this.alive = true;
     }
 
     //updates coordinates and id

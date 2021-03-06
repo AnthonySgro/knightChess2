@@ -3,6 +3,7 @@ import ReactDom from "react-dom";
 import ChessApp from "./components/chessApp.jsx";
 import { DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
+import { playEndGame } from "./helper-functions/sounds";
 
 import Sidebar from "./components/sidebar/sidebar.jsx";
 
@@ -11,12 +12,16 @@ class GamePage extends Component {
         super();
         this.state = {
             promotion: "Q",
+            resignation: { white: false, black: false, all: false },
+            drawOffer: { white: false, black: false, all: false },
         };
         this.openRules = this.openRules.bind(this);
         this.closeRules = this.openRules.bind(this);
         this.sendChat = this.sendChat.bind(this);
         this.changePromotion = this.changePromotion.bind(this);
-        this;
+        this.resign = this.resign.bind(this);
+        this.offerDraw = this.offerDraw.bind(this);
+        this.resetResignAndOfferDraw = this.resetResignAndOfferDraw.bind(this);
     }
 
     openRules() {
@@ -63,6 +68,35 @@ class GamePage extends Component {
         });
     }
 
+    resetResignAndOfferDraw() {
+        this.setState({
+            drawOffer: { white: false, black: false, all: false },
+            resignation: { white: false, black: false, all: false },
+        });
+    }
+
+    resign() {
+        const userFeedback = document.querySelector(".user-feedback");
+        const name = document.querySelector("#phase-information").innerHTML;
+        userFeedback.innerHTML = `${name} resigned!`;
+        playEndGame();
+        const chessboard = document.querySelector("#chessboard-backdrop");
+        const newGameBtn = document.querySelector("#newGame-btn");
+        chessboard.style.filter = "grayscale(100%)";
+        newGameBtn.style.visibility = "visible";
+        this.setState({
+            resignation: { white: false, black: false, all: true },
+        });
+    }
+
+    offerDraw() {
+        const userFeedback = document.querySelector(".user-feedback");
+        const name = document.querySelector("#phase-information").innerHTML;
+        userFeedback.innerHTML = `${name} offered draw!`;
+
+        this.setState({ drawOffer: { white: true, black: false, all: false } });
+    }
+
     render() {
         return (
             <React.Fragment>
@@ -70,10 +104,15 @@ class GamePage extends Component {
                     closeRules={this.closeRules}
                     changePromotion={this.changePromotion}
                     sendChat={this.sendChat}
+                    resign={this.resign}
+                    offerDraw={this.offerDraw}
                 />
                 <ChessApp
                     promotion={this.state.promotion}
                     openRules={this.openRules}
+                    resignation={this.state.resignation}
+                    drawOffer={this.state.drawOffer}
+                    resetResignAndOfferDraw={this.resetResignAndOfferDraw}
                 />
             </React.Fragment>
         );

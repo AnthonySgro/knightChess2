@@ -358,7 +358,7 @@ h2 {
     margin-top: 2rem;
 }
 
-#promolabel {
+.sidebar-label {
     font-size: large;
     font-weight: bold;
     margin-bottom: 0.5rem;
@@ -370,4 +370,8 @@ h2 {
     padding: 0rem 0.5rem;
     box-shadow: 0 7px 10px -9px rgba(0, 0, 0, 0.62);
     background-color: #f1f1f1;
+}
+
+#submit-resign {
+    margin-left: 0.5rem;
 }

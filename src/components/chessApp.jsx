@@ -2,21 +2,12 @@ import React, { Component } from "react";
 
 //prettier-ignore
 import { Pawn, Rook, Knight, Bishop, Queen, King } from "../pieces/allPieceExport.jsx";
+//prettier-ignore
+import { playMoveSound, playCaptureSound, playOutOfBoundSound, playEndGame } from "../helper-functions/sounds";
 import UserInterface from "./ui/userInterface.jsx";
 import convertNotation from "../helper-functions/notationConverter";
 import { isEmpty } from "lodash";
-import {
-    playMoveSound,
-    playCaptureSound,
-    playOutOfBoundSound,
-    playEndGame,
-} from "../helper-functions/sounds";
-import basicMove from "../chessLogic/basicMove";
-import {
-    getPieceWithDom,
-    getPieceWithCoords,
-} from "../helper-functions/getPieceWithDom";
-import checkFiltering from "../chessLogic/checkFiltering.js";
+import { getPieceWithDom } from "../helper-functions/getPieceWithDom";
 import updatePieceCoords from "../helper-functions/updatePieceCoords";
 import promotion from "../chessLogic/promotionLogic";
 import postMoveBoardSweep from "../helper-functions/postMoveBoardSweep";
@@ -24,6 +15,7 @@ import check from "../chessLogic/checkDetection";
 import checkmate from "../chessLogic/checkmateDetection";
 import chessMove from "../chessLogic/chessMove";
 import positionValidator from "../chessLogic/positionValidator";
+import updatePieceAlive from "../helper-functions/updatePieceAlive";
 
 //components
 import Chessboard from "./chessboard/chessboard.jsx";
@@ -55,6 +47,7 @@ class ChessApp extends Component {
             stepNumber: 0,
             whiteIsNext: true,
             rotation: 0,
+            endGame: false,
         };
 
         //dragging props
@@ -83,6 +76,8 @@ class ChessApp extends Component {
         this.setUpBoard();
     }
 
+    componentDidUpdate() {}
+
     //this function is responsible for returning a piece object given an id
     idToPiece(pieceId) {
         const [movedPiece] = this.allPieces.filter(
@@ -103,11 +98,27 @@ class ChessApp extends Component {
             return;
         }
 
+        // Don't do anything if the game ended
+        const { endGame } = this.state;
+        if (endGame) {
+            return;
+        }
+
+        // Don't do anything if someone resigned
+        const { resignation } = this.props;
+        if (resignation.all) {
+            return;
+        }
+
         // If user is not on the most up-to-date move, don't continue
         const gameHistory = this.state.history;
         if (this.state.stepNumber !== gameHistory.length - 1) {
             return;
         }
+
+        // Resets our text feedback
+        const userFeedback = document.querySelector(".user-feedback");
+        userFeedback.innerHTML = ``;
 
         // Get reference to our piece object
         const movedPiece = this.idToPiece(pieceId);
@@ -175,7 +186,7 @@ class ChessApp extends Component {
         }
 
         // Initialize Endgame variable to false
-        let endGame = false;
+        let endOfGame = false;
 
         // Did we deal check with that move?
         let dealtCheck = check(movedPiece, oppKing, newBoardConfig);
@@ -183,16 +194,25 @@ class ChessApp extends Component {
         // Check if opponent has a move
         let noMoves = checkmate(movedPiece, newBoardConfig);
 
-        //checkmate
-        const userFeedback = document.querySelector(".user-feedback");
+        // Update alive pieces
+        const insufficientMaterial = updatePieceAlive(
+            this.allPieces,
+            newBoardConfig,
+        );
+
+        // End game
+        // Checkmate
         if (noMoves && dealtCheck) {
-            endGame = true;
+            endOfGame = true;
             userFeedback.innerHTML = "Checkmate!";
-            //stalemate
+            // Stalemate
         } else if (noMoves) {
-            endGame = true;
-            const userFeedback = document.querySelector(".user-feedback");
+            endOfGame = true;
             userFeedback.innerHTML = "Stalemate!";
+            // Insufficient material
+        } else if (insufficientMaterial) {
+            endOfGame = true;
+            userFeedback.innerHTML = "Insufficient material, draw!";
         }
 
         //if check, color appropriate squares
@@ -212,7 +232,7 @@ class ChessApp extends Component {
         const placeholderHeroku =
             "https://knightchess.herokuapp.com/images/placeholder.png";
         const imageFileOfTarget = targetTile.firstChild.src;
-        if (endGame) {
+        if (endOfGame) {
             playEndGame();
             const chessboard = document.querySelector("#chessboard-backdrop");
             const newGameBtn = document.querySelector("#newGame-btn");
@@ -249,6 +269,7 @@ class ChessApp extends Component {
             whiteIsNext: !this.state.whiteIsNext,
             stepNumber: newStepNumber,
             history: [...history, newBoardPosition],
+            endGame: endOfGame,
         });
     }
 
@@ -256,6 +277,17 @@ class ChessApp extends Component {
     dragStartHandler(e, piece) {
         // Just make sure no glitches happen
         if (isEmpty(piece) || piece === undefined) {
+            return;
+        }
+
+        // Don't do anything if the game is over
+        if (this.state.endGame) {
+            return;
+        }
+
+        // Don't do anything if someone resigned
+        const { resignation } = this.props;
+        if (resignation.all) {
             return;
         }
 
@@ -349,7 +381,7 @@ class ChessApp extends Component {
         newGameBtn.style.visibility = "hidden";
         userFeedback.innerHTML = "";
 
-        //reset styles
+        // Reset styles
         for (let col = 0; col < 8; col++) {
             for (let row = 0; row < 8; row++) {
                 const tile = convertNotation([col, row]).join("");
@@ -365,6 +397,7 @@ class ChessApp extends Component {
             }
         }
 
+        // Remakes all pieces
         let R1 = new Rook(this.props, "R");
         let N1 = new Knight(this.props, "N");
         let B1 = new Bishop(this.props, "B");
@@ -405,7 +438,7 @@ class ChessApp extends Component {
         //prettier-ignore
         const blackCollection = [r1,n1,b1,q1,k1,b2,n2,r2,p1,p2,p3,p4,p5,p6,p7,p8];
 
-        //initial board configuration, edit to experiment with positions
+        // Initial board configuration, edit to experiment with positions
         const boardConfig = [
             [r1, n1, b1, q1, k1, b2, n2, r2],
             [p1, p2, p3, p4, p5, p6, p7, p8],
@@ -417,10 +450,10 @@ class ChessApp extends Component {
             [R1, N1, B1, Q1, K1, B2, N2, R2],
         ];
 
-        //test boards
+        // Test boards
         const boardConfig1 = [
-            [r1, {}, {}, {}, k1, {}, {}, {}],
-            [{}, {}, {}, {}, {}, {}, {}, {}],
+            [{}, {}, {}, {}, k1, {}, {}, {}],
+            [{}, {}, P1, {}, {}, {}, {}, {}],
             [{}, {}, {}, {}, {}, {}, {}, {}],
             [{}, {}, {}, {}, {}, {}, {}, {}],
             [{}, {}, {}, {}, {}, {}, {}, {}],
@@ -444,11 +477,16 @@ class ChessApp extends Component {
         this.blackPieces = blackCollection;
         this.allPieces = whiteCollection.concat(blackCollection);
 
-        //initializes starting board configuration and piece collections
+        // Reset Resign and Draw Offer options
+        const { resetResignAndOfferDraw } = this.props;
+        resetResignAndOfferDraw();
+
+        // Initializes starting board configuration and piece collections
         this.setState({
             history: [{ boardConfig }],
             stepNumber: 0,
             whiteIsNext: true,
+            endGame: false,
         });
     }
 
