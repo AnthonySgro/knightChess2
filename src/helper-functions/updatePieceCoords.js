@@ -1,4 +1,7 @@
+import convertNotation from "./notationConverter";
+
 function updatePieceCoords(piece, flatChessCoords) {
+    piece.numberCoords = convertNotation(flatChessCoords);
     piece.chessCoords = [flatChessCoords[0]][flatChessCoords[1]];
     piece.flatChessCoords = flatChessCoords;
     piece.id = `${

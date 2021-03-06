@@ -55,21 +55,23 @@ function checkFiltering(target, origin, piece, boardConfig, basicMoveObj) {
     for (let col = 0; col < 8; col++) {
         for (let row = 0; row < 8; row++) {
             const cycleTilePiece = simulBoardConfig[col][row];
-            if (
-                cycleTilePiece.name === "King" &&
-                cycleTilePiece.color === piece.color
-            ) {
-                //finds the king of this player on simulated board
-                if (piece.name === "King") {
-                    thisKing = cycleTilePiece;
-                } else if (piece.name !== "King") {
-                    thisKing = cloneDeep(cycleTilePiece);
+            if (!isEmpty(cycleTilePiece)) {
+                if (
+                    cycleTilePiece.name === "King" &&
+                    cycleTilePiece.color === piece.color
+                ) {
+                    //finds the king of this player on simulated board
+                    if (piece.name === "King") {
+                        thisKing = cycleTilePiece;
+                    } else if (piece.name !== "King") {
+                        thisKing = cloneDeep(cycleTilePiece);
+                    }
+                } else if (
+                    cycleTilePiece.name === "King" &&
+                    cycleTilePiece.color !== piece.color
+                ) {
+                    oppKing = cycleTilePiece;
                 }
-            } else if (
-                cycleTilePiece.name === "King" &&
-                cycleTilePiece.color !== piece.color
-            ) {
-                oppKing = cycleTilePiece;
             }
         }
     }

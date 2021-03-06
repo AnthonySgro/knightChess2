@@ -12,7 +12,10 @@ import {
     playEndGame,
 } from "../helper-functions/sounds";
 import basicMove from "../chessLogic/basicMove";
-import { getPieceWithDom } from "../helper-functions/getPieceWithDom";
+import {
+    getPieceWithDom,
+    getPieceWithCoords,
+} from "../helper-functions/getPieceWithDom";
 import checkFiltering from "../chessLogic/checkFiltering.js";
 import updatePieceCoords from "../helper-functions/updatePieceCoords";
 import promotion from "../chessLogic/promotionLogic";
@@ -20,6 +23,7 @@ import postMoveBoardSweep from "../helper-functions/postMoveBoardSweep";
 import check from "../chessLogic/checkDetection";
 import checkmate from "../chessLogic/checkmateDetection";
 import chessMove from "../chessLogic/chessMove";
+import positionValidator from "../chessLogic/positionValidator";
 
 //components
 import Chessboard from "./chessboard/chessboard.jsx";
@@ -243,19 +247,32 @@ class ChessApp extends Component {
 
     // For fun board styling
     dragStartHandler(e, piece) {
-        // Initialize
-        this.draggingPieceMoveable = [];
-        this.draggingPiece = piece;
-
         // Just make sure no glitches happen
         if (isEmpty(piece) || piece === undefined) {
             return;
         }
 
         // Get reference to current board configuration
-        const originSquare = piece.flatChessCoords;
         const history = this.state.history;
         const { boardConfig } = history[this.state.stepNumber];
+
+        // First thing is to initialize pieces to board
+        for (let col = 0; col < 8; col++) {
+            for (let row = 0; row < 8; row++) {
+                const chesscoords = convertNotation([col, row]);
+                const coords = boardStateConverter([col, row]);
+                const ourPiece = boardConfig[coords[0]][coords[1]];
+
+                if (!isEmpty(ourPiece)) {
+                    positionValidator(ourPiece, chesscoords);
+                }
+            }
+        }
+
+        // Initialize
+        this.draggingPieceMoveable = [];
+        this.draggingPiece = piece;
+        const originSquare = piece.flatChessCoords;
 
         // If we are not viewing up-to-date board, return
         if (this.state.stepNumber !== history.length - 1) {
@@ -395,14 +412,14 @@ class ChessApp extends Component {
 
         //test boards
         const boardConfig1 = [
-            [{}, {}, {}, {}, k1, {}, {}, {}],
-            [{}, {}, P1, {}, {}, {}, {}, {}],
-            [{}, {}, {}, {}, {}, {}, K1, {}],
+            [r1, {}, {}, {}, k1, {}, {}, {}],
             [{}, {}, {}, {}, {}, {}, {}, {}],
             [{}, {}, {}, {}, {}, {}, {}, {}],
             [{}, {}, {}, {}, {}, {}, {}, {}],
             [{}, {}, {}, {}, {}, {}, {}, {}],
             [{}, {}, {}, {}, {}, {}, {}, {}],
+            [{}, {}, {}, {}, {}, {}, {}, {}],
+            [{}, {}, {}, {}, K1, {}, {}, {}],
         ];
 
         const boardConfig2 = [
