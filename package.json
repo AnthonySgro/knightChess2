@@ -4,7 +4,9 @@
     "description": "",
     "main": "webpack.config.js",
     "scripts": {
-        "start": "npm run start-server & npm run build-watch",
+        "start": "npm run build & node server",
+        "build": "webpack -w",
+        "start:dev": "npm run start-server & npm run build-watch",
         "build-watch": "webpack -w --mode=development",
         "start-server": "nodemon server --ignore public"
     },
