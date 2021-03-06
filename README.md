@@ -8,6 +8,6 @@ help bring the app to life.
 # Startup Guide
 
 -   **Easy Start-Up**
--   run `npm start` command
+-   run `npm run start:dev` command
 -   [go to development port 9000](http://localhost:9000)
 -   have fun!
