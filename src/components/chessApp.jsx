@@ -224,6 +224,9 @@ class ChessApp extends Component {
             }
         }
 
+        console.log(imageFileOfTarget, placeholder);
+        console.log(enPassantEvent);
+
         //stores the squares involved in last move for a moment
         this.lastMoveSquares = [from, to];
 
