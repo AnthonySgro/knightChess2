@@ -211,20 +211,18 @@ class ChessApp extends Component {
         const placeholder = "http://localhost:9000/images/placeholder.png";
         const imageFileOfTarget = targetTile.firstChild.src;
         if (endGame) {
-            // playEndGame();
+            playEndGame();
             const chessboard = document.querySelector("#chessboard-backdrop");
             const newGameBtn = document.querySelector("#newGame-btn");
             chessboard.style.filter = "grayscale(100%)";
             newGameBtn.style.visibility = "visible";
         } else {
-            // if (imageFileOfTarget === placeholder && !enPassantEvent) {
-            //     playMoveSound();
-            // } else {
-            //     playCaptureSound();
-            // }
+            if (imageFileOfTarget === placeholder && !enPassantEvent) {
+                playMoveSound();
+            } else {
+                //playCaptureSound();
+            }
         }
-
-        playMoveSound();
 
         //stores the squares involved in last move for a moment
         this.lastMoveSquares = [from, to];
