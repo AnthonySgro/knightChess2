@@ -441,7 +441,7 @@ class ChessApp extends Component {
         const blackCollection = [r1,n1,b1,q1,k1,b2,n2,r2,p1,p2,p3,p4,p5,p6,p7,p8];
 
         // Initial board configuration, edit to experiment with positions
-        const boardConfig1 = [
+        const boardConfig = [
             [r1, n1, b1, q1, k1, b2, n2, r2],
             [p1, p2, p3, p4, p5, p6, p7, p8],
             [{}, {}, {}, {}, {}, {}, {}, {}],
@@ -453,7 +453,7 @@ class ChessApp extends Component {
         ];
 
         // Test boards
-        const boardConfig = [
+        const boardConfig1 = [
             [{}, {}, {}, {}, k1, {}, {}, {}],
             [{}, {}, {}, {}, {}, {}, {}, {}],
             [{}, {}, {}, {}, {}, {}, {}, {}],
