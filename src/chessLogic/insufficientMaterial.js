@@ -1,7 +1,6 @@
-import updatePieceCoords from "./updatePieceCoords";
 import { isEmpty } from "lodash";
 
-function updatePieceAlive(allPieces, boardConfig) {
+function insufficientMaterial(allPieces, boardConfig) {
     let insufficientMaterial = false;
     let whitePieceCollection = [];
     let blackPieceCollection = [];
@@ -18,15 +17,13 @@ function updatePieceAlive(allPieces, boardConfig) {
         }
     }
 
-    // console.log(blackPieceCollection.length);
-    // console.log(whitePieceCollection.length);
-
-    //If only two kings are left
+    // Insufficient material checker
     switch (whitePieceCollection.length) {
         case 0:
+            //If only two kings are left
             if (blackPieceCollection.length === 0) {
                 insufficientMaterial = true;
-            } else if (blackPieceCollection === 0) {
+            } else if (blackPieceCollection.length === 1) {
                 if (blackPieceCollection[0] === "Bishop") {
                     insufficientMaterial = true;
                 } else if (blackPieceCollection[0] === "Knight") {
@@ -45,4 +42,4 @@ function updatePieceAlive(allPieces, boardConfig) {
     return insufficientMaterial;
 }
 
-export default updatePieceAlive;
+export default insufficientMaterial;

@@ -15,7 +15,8 @@ import check from "../chessLogic/checkDetection";
 import checkmate from "../chessLogic/checkmateDetection";
 import chessMove from "../chessLogic/chessMove";
 import positionValidator from "../chessLogic/positionValidator";
-import updatePieceAlive from "../helper-functions/updatePieceAlive";
+import insufficientMaterial from "../chessLogic/insufficientMaterial";
+import threefoldRepition from "../chessLogic/threefoldRepitition";
 
 //components
 import Chessboard from "./chessboard/chessboard.jsx";
@@ -75,8 +76,6 @@ class ChessApp extends Component {
     componentDidMount() {
         this.setUpBoard();
     }
-
-    componentDidUpdate() {}
 
     //this function is responsible for returning a piece object given an id
     idToPiece(pieceId) {
@@ -194,11 +193,14 @@ class ChessApp extends Component {
         // Check if opponent has a move
         let noMoves = checkmate(movedPiece, newBoardConfig);
 
-        // Update alive pieces
-        const insufficientMaterial = updatePieceAlive(
+        // Is there sufficient material for a checkmate?
+        const notEnoughMaterial = insufficientMaterial(
             this.allPieces,
             newBoardConfig,
         );
+
+        // Threefold repitition
+        const threefoldDraw = threefoldRepition(this.state.history);
 
         // End game
         // Checkmate
@@ -210,7 +212,7 @@ class ChessApp extends Component {
             endOfGame = true;
             userFeedback.innerHTML = "Stalemate!";
             // Insufficient material
-        } else if (insufficientMaterial) {
+        } else if (notEnoughMaterial) {
             endOfGame = true;
             userFeedback.innerHTML = "Insufficient material, draw!";
         }
@@ -439,7 +441,7 @@ class ChessApp extends Component {
         const blackCollection = [r1,n1,b1,q1,k1,b2,n2,r2,p1,p2,p3,p4,p5,p6,p7,p8];
 
         // Initial board configuration, edit to experiment with positions
-        const boardConfig = [
+        const boardConfig1 = [
             [r1, n1, b1, q1, k1, b2, n2, r2],
             [p1, p2, p3, p4, p5, p6, p7, p8],
             [{}, {}, {}, {}, {}, {}, {}, {}],
@@ -451,14 +453,14 @@ class ChessApp extends Component {
         ];
 
         // Test boards
-        const boardConfig1 = [
+        const boardConfig = [
             [{}, {}, {}, {}, k1, {}, {}, {}],
-            [{}, {}, P1, {}, {}, {}, {}, {}],
             [{}, {}, {}, {}, {}, {}, {}, {}],
             [{}, {}, {}, {}, {}, {}, {}, {}],
             [{}, {}, {}, {}, {}, {}, {}, {}],
             [{}, {}, {}, {}, {}, {}, {}, {}],
             [{}, {}, {}, {}, {}, {}, {}, {}],
+            [{}, {}, p1, {}, {}, {}, {}, {}],
             [{}, {}, {}, {}, K1, {}, {}, {}],
         ];
 
