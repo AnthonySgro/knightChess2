@@ -17,6 +17,7 @@ import chessMove from "../chessLogic/chessMove";
 import positionValidator from "../chessLogic/positionValidator";
 import insufficientMaterial from "../chessLogic/insufficientMaterial";
 import threefoldRepition from "../chessLogic/threefoldRepitition";
+import basicMove from "../chessLogic/basicMove";
 
 //components
 import Chessboard from "./chessboard/chessboard.jsx";
@@ -44,18 +45,18 @@ class ChessApp extends Component {
                     ],
                 },
             ],
-            //initializes game to move 0 and white-to-move and board rotation
+            // Initializes game to move 0 and white-to-move and board rotation
             stepNumber: 0,
             whiteIsNext: true,
             rotation: 0,
             endGame: false,
         };
 
-        //dragging props
+        // Dragging props
         this.draggingPiece = {};
         this.draggingPieceMoveable = [];
 
-        //function binding
+        // Function binding
         this.idToPiece = this.idToPiece.bind(this);
         this.moveHandler = this.moveHandler.bind(this);
         this.dragStartHandlerProp = this.dragStartHandler.bind(this);
@@ -63,13 +64,19 @@ class ChessApp extends Component {
         this.moveBack = this.moveBack.bind(this);
         this.moveForward = this.moveForward.bind(this);
         this.rotateBoard = this.rotateBoard.bind(this);
+        this.computerMove = this.computerMove.bind(this);
 
-        //pieces
+        // Pieces
         this.whitePieces = [];
         this.blackPieces = [];
         this.allPieces = [];
 
-        //remembers
+        // Remaining Pieces
+        this.remainingWhitePieces = [];
+        this.remainingBlackPieces = [];
+        this.remainingAllPieces = [];
+
+        // Remembers last move
         this.lastMoveSquares = [];
     }
 
@@ -129,7 +136,7 @@ class ChessApp extends Component {
         // ** Everything before is guaranteed to happen **
         // ** ***************************************** **
 
-        // Sees if the move is a basic move of the piece
+        // Sees if the move is valid
         const moveData = chessMove(to, from, movedPiece, oldBoardConfig);
 
         // Move data object
@@ -156,7 +163,11 @@ class ChessApp extends Component {
         updatePieceCoords(movedPiece, to);
 
         // Returns enemy king for dealing check detection, also removes styling post move
-        let oppKing = postMoveBoardSweep(movedPiece, newBoardConfig);
+        let {
+            oppKing,
+            remainingWhitePieces,
+            remainingBlackPieces,
+        } = postMoveBoardSweep(movedPiece, newBoardConfig);
 
         // Promotion (including underpromotion)
         let promo = promotion(to, movedPiece, this.props.promotion, this.props);
@@ -266,19 +277,92 @@ class ChessApp extends Component {
         const history = this.state.history;
         const newBoardPosition = { boardConfig };
 
-        //updates whole board and adds history log
+        // Updates remining pieces
+        this.remainingWhitePieces = remainingWhitePieces;
+        this.remainingBlackPieces = remainingBlackPieces;
+        this.remainingAllPieces = remainingWhitePieces.concat(
+            remainingBlackPieces,
+        );
+
+        // Updates whole board and adds history log
         this.setState({
             whiteIsNext: !this.state.whiteIsNext,
             stepNumber: newStepNumber,
             history: [...history, newBoardPosition],
             endGame: endOfGame,
         });
+
+        // calls a computer move right after
+        if (!this.state.whiteIsNext && !endOfGame) {
+            setTimeout(() => this.computerMove(), 1000);
+        }
+    }
+
+    // Generates a computer move
+    computerMove() {
+        const history = this.state.history;
+        const current = history[this.state.stepNumber].boardConfig;
+        let blackPieces = this.remainingBlackPieces;
+
+        // Determine valid moves
+        for (let piece of blackPieces) {
+            // Resets the valid moves for the piece
+            piece.validMoves = [];
+            const from = piece.flatChessCoords;
+
+            // Cycles through board to get all available moves
+            for (let row = 0; row < 8; row++) {
+                for (let col = 0; col < 8; col++) {
+                    const to = convertNotation([row, col]).join("");
+
+                    // If it is a valid move, store it
+                    const moveData = chessMove(to, from, piece, current);
+                    if (moveData.validMove) {
+                        piece.validMoves.push(to);
+                    }
+                }
+            }
+        }
+
+        const moveSelector = () => {
+            // Get array of pieces with moves
+            const blackPiecesWithMoves = blackPieces.filter((piece) => {
+                if (piece.validMoves.length !== 0) {
+                    return piece;
+                }
+            });
+
+            // Gets a random piece from the list
+            const numPieces = blackPiecesWithMoves.length;
+            const i = Math.floor(Math.random() * numPieces);
+            const randPiece = blackPiecesWithMoves[i];
+
+            // Gets a random move from the piece
+            const numMoves = randPiece.validMoves.length;
+            const j = Math.floor(Math.random() * numMoves);
+            const randMove = randPiece.validMoves[j];
+
+            // Execute move!
+            this.moveHandler(
+                current,
+                randPiece.id,
+                randPiece.flatChessCoords,
+                randMove,
+            );
+        };
+
+        moveSelector();
     }
 
     // For fun board styling
     dragStartHandler(e, piece) {
         // Just make sure no glitches happen
         if (isEmpty(piece) || piece === undefined) {
+            return;
+        }
+
+        // Only let styling happen for white bc we are playing a computer
+        if (!piece.white) {
             return;
         }
 

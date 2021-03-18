@@ -17,15 +17,20 @@ function ChessPiece(props) {
 
     //update position and display on screen with dragging config
     piece.updatePositionState(numberCoords);
+
     const rotateStyle = {
         transform: `rotate(${rotation}deg)`,
     };
+
     const opacityStyle = {
         opacity: isDragging ? 0.5 : 1,
     };
 
     //if it is this piece's turn, we make it draggable
-    if (piece.white === playerTurn) {
+    // if (piece.white === playerTurn) {
+
+    //if it's white turn, allow user to go
+    if (piece.white && piece.white === playerTurn) {
         return (
             <React.Fragment>
                 <DragPreviewImage connect={preview} src={imageFile} />

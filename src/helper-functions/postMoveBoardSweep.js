@@ -4,6 +4,9 @@ import { isEmpty } from "lodash";
 //iterates through all squares after move to clear styling and return king location
 function postMoveBoardSweep(givenPiece, boardConfig) {
     let oppKing = {};
+    let remainingWhitePieces = [];
+    let remainingBlackPieces = [];
+
     for (let col = 0; col < 8; col++) {
         for (let row = 0; row < 8; row++) {
             //while we're here, take out all check styling
@@ -23,11 +26,17 @@ function postMoveBoardSweep(givenPiece, boardConfig) {
                 if (piece.name === "King" && piece.color !== givenPiece.color) {
                     oppKing = piece;
                 }
+
+                if (piece.white) {
+                    remainingWhitePieces.push(piece);
+                } else {
+                    remainingBlackPieces.push(piece);
+                }
             }
         }
     }
 
-    return oppKing;
+    return { oppKing, remainingWhitePieces, remainingBlackPieces };
 }
 
 export default postMoveBoardSweep;

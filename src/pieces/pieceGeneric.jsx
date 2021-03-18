@@ -25,6 +25,9 @@ class Piece {
         //unique id
         this.id = "";
         this.alive = true;
+
+        // Stores available moves
+        this.validMoves = [];
     }
 
     //updates coordinates and id

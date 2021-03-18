@@ -11,7 +11,7 @@
         "start-server": "nodemon server --ignore public"
     },
     "keywords": [],
-    "author": "",
+    "author": "Anthony Sgro",
     "license": "ISC",
     "dependencies": {
         "express": "^4.17.1",
