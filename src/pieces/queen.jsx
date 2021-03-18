@@ -5,6 +5,7 @@ class Queen extends Piece {
         super(props, char);
         this.name = "Queen";
         this.attackingSquares = [];
+        this.value = 9;
     }
 }
 

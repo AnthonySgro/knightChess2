@@ -7,6 +7,7 @@ class Pawn extends Piece {
         this.attackingSquares = [];
         this.moveTwoAvailable = true;
         this.vulnerableToEnPassant = false;
+        this.value = 1;
     }
 }
 

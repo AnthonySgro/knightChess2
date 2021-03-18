@@ -6,6 +6,7 @@ class King extends Piece {
         this.name = "King";
         this.attackingSquares = [];
         this.castlingAvailable = true;
+        this.value = 1000;
     }
 }
 

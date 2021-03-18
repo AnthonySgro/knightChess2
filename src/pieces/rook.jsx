@@ -6,6 +6,7 @@ class Rook extends Piece {
         this.name = "Rook";
         this.attackingSquares = [];
         this.hasMoved = false;
+        this.value = 5;
     }
 }
 

@@ -18,6 +18,7 @@ import positionValidator from "../chessLogic/positionValidator";
 import insufficientMaterial from "../chessLogic/insufficientMaterial";
 import threefoldRepition from "../chessLogic/threefoldRepitition";
 import basicMove from "../chessLogic/basicMove";
+import evaluate from "../chessLogic/evaluate";
 
 //components
 import Chessboard from "./chessboard/chessboard.jsx";
@@ -284,6 +285,8 @@ class ChessApp extends Component {
             remainingBlackPieces,
         );
 
+        // console.log(evaluate(boardConfig));
+
         // Updates whole board and adds history log
         this.setState({
             whiteIsNext: !this.state.whiteIsNext,
@@ -302,7 +305,11 @@ class ChessApp extends Component {
     computerMove() {
         const history = this.state.history;
         const current = history[this.state.stepNumber].boardConfig;
+
+        // Pull in our pieces on the board
         let blackPieces = this.remainingBlackPieces;
+        let whitePieces = this.remainingWhitePieces;
+        let allPieces = this.remainingAllPieces;
 
         // Determine valid moves
         for (let piece of blackPieces) {
@@ -317,8 +324,11 @@ class ChessApp extends Component {
 
                     // If it is a valid move, store it
                     const moveData = chessMove(to, from, piece, current);
+
                     if (moveData.validMove) {
-                        piece.validMoves.push(to);
+                        const newBoard = moveData.newBoardConfig;
+                        const evaluation = evaluate(newBoard);
+                        piece.validMoves.push({ move: to, eval: evaluation });
                     }
                 }
             }
@@ -332,22 +342,43 @@ class ChessApp extends Component {
                 }
             });
 
-            // Gets a random piece from the list
-            const numPieces = blackPiecesWithMoves.length;
-            const i = Math.floor(Math.random() * numPieces);
-            const randPiece = blackPiecesWithMoves[i];
+            let bestMoveArray = [];
+            let bestEvaluation = 100000;
 
-            // Gets a random move from the piece
-            const numMoves = randPiece.validMoves.length;
-            const j = Math.floor(Math.random() * numMoves);
-            const randMove = randPiece.validMoves[j];
+            blackPiecesWithMoves.forEach((piece) => {
+                piece.validMoves.forEach((move) => {
+                    if (move.eval < bestEvaluation) {
+                        bestEvaluation = move.eval;
+                        bestMoveArray = [];
+                    }
+
+                    if (move.eval === bestEvaluation) {
+                        const maxMove = {
+                            piece: null,
+                            move: "",
+                            eval: 100000,
+                        };
+
+                        maxMove.piece = piece;
+                        maxMove.move = move.move;
+                        maxMove.eval = move.eval;
+
+                        bestMoveArray.push(maxMove);
+                    }
+                });
+            });
+
+            // Randomly selects among the moves with the same evaluation
+            const numMoves = bestMoveArray.length;
+            const i = Math.floor(Math.random() * numMoves);
+            const bestMove = bestMoveArray[i];
 
             // Execute move!
             this.moveHandler(
                 current,
-                randPiece.id,
-                randPiece.flatChessCoords,
-                randMove,
+                bestMove.piece.id,
+                bestMove.piece.flatChessCoords,
+                bestMove.move,
             );
         };
 
